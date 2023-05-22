@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Line Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.js"></script>
+</head>
+
+<body>
+  <select id="companyDropdown"></select>
+  <canvas id="myChart"></canvas>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+      myHeaders.append("Authorization", "Basic YmNhOmJjYXh5ejIwMTk=");
+
+      const raw = JSON.stringify({
+        "action": "1",
+        "key": "8030",
+        "mvitem": "71022217þ",
+        "othval": "LIST_DIST",
+        "serverdb": "1000",
+        "sid": "9300957",
+        "sp": "[SD].[BI_DistDashboard]"
+      });
+
+      const requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
+      };
+
+      fetch("https://safe.ultrajaya.co.id/safeapi/andro/ambil", requestOptions)
+        .then(response => response.text())
+        .then(result => {
+          const o = JSON.parse(result)
+          const companyTable = o.data.nilai.Table
+          console.log(companyTable)
+
+          // Accessing values
+          const table = o.data.nilai.Table
+
+          let i = 0
+          const tahun = []
+          const bulan = []
+          const bulanName = []
+          const volIn = []
+          const volOut = []
+          for (const entry of table) {
+            tahun[i] = entry.Tahun;
+            bulan[i] = entry.Bulan;
+            bulanName[i] = entry.Bulan_Name;
+            volIn[i] = entry.Vol_In / 1000000000;
+            volOut[i] = entry.Vol_Out / 1000000000;
+            i++
+          }
+
+          const data = {
+            labels: bulanName,
+            datasets: [{
+                label: 'Volume In',
+                data: volIn,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.4,
+              },
+              {
+                label: 'Volume Out',
+                data: volOut,
+                borderColor: 'rgb(192, 75, 192)',
+                backgroundColor: 'rgba(192, 75, 192, 0.2)',
+                tension: 0.4,
+              }
+            ]
+          };
+        
+          const config = {
+            type: 'line',
+            data: data,
+            options: {
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Month',
+                    font: {
+                      size: 14,
+                      weight: 'lighter',
+                    },
+                    color: 'indigo'
+                  },
+                },
+
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Volume (M)',
+                  font: {
+                    size: 14,
+                    weight: 'lighter',
+                  },
+                  color: 'indigo'
+                }
+              }
+            },
+            plugins: {
+              title: {
+                display: true, 
+                text : 'Volume In vs Volume Out',
+                font: {
+                  weight: 'bold',
+                  size: 16,
+                },
+                color: 'indigo'
+              },
+              legend: {
+                display: true,
+                position: 'top'
+              }
+            }
+          }
+        };
+
+        // Function to populate the dropdown after the table is created
+        populateDropdown(companyTable);
+
+        // Create the chart
+        const myChart = new Chart(document.getElementById('myChart'), config);
+      })
+      .catch(error => console.log('Error', error));
+
+    function populateDropdown(companyTable) {
+      const dropdown = document.getElementById('companyDropdown');
+      dropdown.innerHTML = '';
+      companyTable.forEach(company => {
+        console.log(company.Company_Code);
+        const option = document.createElement('option');
+        option.value = company.Company_Code;
+        option.text = company.Company_Name;
+        dropdown.add(option);
+      });
+    }
+  </script>
+
+</body>
+
+</html>

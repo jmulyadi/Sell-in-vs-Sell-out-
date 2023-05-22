@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang ="en">
+<head>
+<!-- Required meta tags -->
+<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Graph 2</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.js"></script>
+  <link rel="stylesheet"
+  href=
+"https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+
+<script src=
+"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js">
+</script>
+
+<script src=
+"https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js">
+</script>
+</head>
+<style>
+    body {
+        margin-top: 20px; /* Add margin to move everything down */
+    }
+    #myChart {
+        max-width: 600px;
+        max-height: 400px;
+    }
+</style>
+<body class="dx-viewport dx-device-desktop dx-device-generic dx-theme-generic dx-theme-generic-typography dx-color-scheme-light" style>
+        <div class = "container">
+        </div>
+        <canvas id="myChart"></canvas>
+        <style>
+            .btn {
+                margin-right:10px; 
+                margin-left:10px; 
+            }
+            .container {
+              margin-bottom: 20px; /* Add margin to create space below the container */
+            }
+        </style>
+    <script>
+    //js code 
+    
+
+
+
+
+
+    function updateChart(type, ten, volTrue) {
+        // Get the selected company code from the dropdown
+        const oldCode = companyDropdown.value
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Authorization", "Basic YmNhOmJjYXh5ejIwMTk=");
+        yHolder = 'Volume'
+        holder = "VOL"
+        if(!volTrue){
+          holder = "CAR"
+          yHolder = 'Carton'
+        }
+        //console.log(oldCode)
+        var raw = JSON.stringify({
+        "action": "1",
+        "key": oldCode,
+        "mvitem": "7þ",
+        "othval": holder,
+        "serverdb": "1000",
+        "sid": "",
+        "sp": "[SD].[BI_DistDashboard]"
+        });
+        var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
+        };
+        fetch("https://safe.ultrajaya.co.id/safeapi/andro/ambil", requestOptions)
+        .then(response => response.text())
+        .then(result => {
+            const load = JSON.parse(result)
+            //console.log(result)
+        // Accessing values
+        const table =   load.data.nilai.Table
+        const tahun = []
+        const bulan = []
+        const bulanName = []
+        const volIn = []
+        const volOut = []
+        var i = 0
+        
+        for (const entry of table) {
+          tahun[i] = entry.Tahun;
+          bulan[i] = entry.Bulan;
+          bulanName[i] = entry.Bulan_Name;
+          //add an if statement to change vol to products 
+          volIn[i] = entry.Vol_In;
+          volOut[i] = entry.Vol_Out;
+          i++
+        }
+        const data = {
+          labels: bulanName,
+          datasets: [{
+          label: `Selling In: `,
+          data: volOut,
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          tension: ten,
+          },
+          {
+          label: `Selling Out: `,
+          data: volIn,
+          borderColor: 'rgb(192, 75, 192)',
+          backgroundColor: 'rgba(192, 75, 192, 0.2)',
+          tension: ten,
+          }]
+        }
+      // Chart configuration
+      let graphType = type
+      
+      const config = {
+        type: graphType,
+        data: data,
+        options: {
+          scales: {
+              x: {
+                  title: {
+                      display: true,
+                      text : "Month",
+                      font : {
+                          size : 14,
+                          weight: 'lighter',
+                          
+                      },
+                      color: 'indigo'
+                  },
+              },
+            y: {
+              beginAtZero: true,
+              title: {
+                  display: true,
+                  text : yHolder,
+                  font : {
+                      size : 14,
+                      weight: 'lighter',
+                  },
+                  color: 'indigo'
+              }
+            }
+          },
+          plugins: {
+            title: {
+              display: true,
+              //<span class="font-semibold text-base text-indigo-900">Summary DO 2023</span>
+              text: 'Selling In vs Selling Out',
+              font: {
+                  weight: 'bold',      // or '600'
+                  size: '16',          // or 16
+              },
+              color: 'indigo'      // or '#3B82F6'
+            },
+            legend: {
+              display: true,
+              position: 'top'
+            }
+          }
+        }
+      };
+      myChart = new Chart(document.getElementById('myChart'), config);
+      })
+        .catch(error => console.log('error', error));  
+        // TODO: Update the chart with the new data
+    }
+    </script>
+  
+</body>
+</html>
