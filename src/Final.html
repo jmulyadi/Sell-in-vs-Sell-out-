@@ -26,17 +26,122 @@
         max-width: 1000px;
         max-height: 500px;
     }
+    .inactive {
+    background-color: #ccc; /* Set the background color of the inactive button */
+    color: #888; /* Set the text color of the inactive button */
+    }
+</style>
+
+<style>
+  .btn-toggle {
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+    width: 150px; /* Adjust the width as needed */
+    height: 40px; /* Adjust the height as needed */
+    border-radius: 20px; /* Adjust the border radius as needed */
+    background-color: #888; /* Set the background color of the button */
+    color: #fff; /* Set the text color of the button */
+    cursor: pointer;
+  }
+  
+  .btn-toggle:before{
+    content: "Line Chart";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left:0;
+  }
+  .btn-toggle:after {
+    content: "Bar Chart";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    right:0;
+  }
+  
+  .btn-toggle:before {
+    left: 0;
+    background-color: #ddd; /* Set the background color of the inactive state */
+  }
+  
+  .btn-toggle:after {
+    right: 0;
+    background-color: #5cb85c; /* Set the background color of the active state */
+  }
+  
+  .btn-toggle.active:before {
+    background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+  }
+  
+  .btn-toggle.active:after {
+    background-color: #ddd; /* Set the background color of the inactive state when the button is not active */
+  }
+  
+  .btn-toggle span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+  }
+  .tension-btn:before{
+    content: "Curved Line";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left:0;
+    background-color: #ddd; /* Set the background color of the active state when the button is active */
+  }
+  .tension-btn:after{
+    content: "Straight Line";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left:0;
+    background-color: #5cb85c
+  }
+  .tension-btn.active:before {
+    background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+  }
+  
+  .tension-btn.active:after {
+    background-color: #ddd; /* Set the background color of the inactive state when the button is active */
+  }
+  .unit:before{
+    content: "Volume";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left:0;
+    background-color: #ddd; /* Set the background color of the active state when the button is active */
+  }
+  .unit:after{
+    content: "Carton";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left:0;
+    background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+  }
+  .unit.active:before{
+    background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+  }
+  .unit.active:after{
+    background-color: #ddd; /* Set the background color of the active state when the button is active */
+  }
 </style>
 <body class="dx-viewport dx-device-desktop dx-device-generic dx-theme-generic dx-theme-generic-typography dx-color-scheme-light" style>
         
         <div class = "container">
             <select class ='btn btn-success' id = "companyDropdown" onchange = changeChart() ></select>
-            <button type = 'button' class ='btn btn-success ' onclick=barChart()>Bar/Line Chart</button>
-
-            <button type = 'button' class ='btn btn-success ' onclick=lineChart()>Line Chart</button>
-            <button type = 'button' id = "switch" class ='btn btn-success ' onclick=switchTension()>Switch Line Tension</button>
-            <button type = 'button' class ='btn btn-success ' onclick=changeUnits()>Change Units</button>
+            <div id = "typeContainer">
+              <button type = 'button' class ='btn btn-toggle active' id ="chartType" onclick=toggleChartType()></button>
+            </div>
+            <button type = 'button' id = "switchTension" class ='btn btn-toggle tension-btn active ' onclick=switchTension()></button>
+            <button type = 'button' id ="unitButton"class ='btn btn-toggle unit active ' onclick=changeUnits()></button>
         </div>
+        
         <div class = "chartContainer">
           <canvas id="myChart"></canvas>
         </div>
@@ -279,29 +384,39 @@
       myChart.destroy();
       updateChart('line',.4);
     }
-    function barChart(){
+    var chartTypeButton = document.getElementById('chartType');
+    function toggleChartType(){
+      if (chartTypeButton.classList.contains('active')) {
+        chartTypeButton.classList.remove('active');
+      } else {
+        chartTypeButton.classList.add('active');
+      }
+      type = "bar"
       if(myChart.config.type == 'bar'){
-        return
+        type = 'line'
+        var tension = document.getElementById('switchTension')
+        if (!tension.classList.contains('active')) {
+          tension.classList.add('active');
+        }
       }
       checkUnit = true
       if(myChart.config.options.scales.y.title.text != 'Volume'){
         checkUnit = false
       }
       myChart.destroy();
-      updateChart('bar',.4, checkUnit);
+      updateChart(type,.4, checkUnit);
     }
-    function lineChart(){
-      if(myChart.config.type == 'line'){
-        return
-      }
-      checkUnit = true
-      if(myChart.config.options.scales.y.title.text != 'Volume'){
-        checkUnit = false
-      }
-      myChart.destroy();
-      updateChart('line',.4, checkUnit);
-    }
+    
     function switchTension(){
+      if(myChart.config.type != 'line'){
+        return
+      }
+      var tension = document.getElementById('switchTension')
+      if (tension.classList.contains('active')) {
+        tension.classList.remove('active');
+      } else {
+        tension.classList.add('active');
+      }
       checkUnit = true
       if(myChart.config.options.scales.y.title.text != 'Volume'){
         checkUnit = false
@@ -316,6 +431,12 @@
       }
     }
     function changeUnits(){
+      var unit = document.getElementById('unitButton')
+      if (unit.classList.contains('active')) {
+        unit.classList.remove('active');
+      } else {
+        unit.classList.add('active');
+      }
       t = myChart.config.type
       ten = myChart.data.datasets[0].tension
       if(myChart.config.options.scales.y.title.text == 'Volume'){
