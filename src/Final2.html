@@ -206,7 +206,7 @@
                     const newTarget2 = []
                     let data;
                     //if check is false then accumulation data is wanted
-                    if(!check){
+                    
                         //index variable
                         i=0
                         for(const key in target){
@@ -273,7 +273,7 @@
                             i++;
                         }
                         //create the data for target, sales, RDF, and target2 or future predictions
-                        data = {
+                        data2 = {
                             //data for accumulation graph
                             target: [
                             { month: 'Jan 23', value: newTarget[0] },
@@ -332,9 +332,9 @@
                             { month: 'Dec 23', value: newTarget2[11] }
                             ],
                         }
-                    }else{
+                    
                         //data for distribution
-                        data = {
+                        data1 = {
                         target: [
                             { month: 'Jan 23', value: target.Jan },
                             { month: 'Feb 23', value: target.Feb },
@@ -392,7 +392,11 @@
                             { month: 'Dec 23', value: target2.Desember }
                             ],
                         };
-                    }
+                    
+                data = data1;
+                if(!check){
+                    data = data2
+                }
                 // Find the index where the sales value stops or goes to 0
                 const stopIndex = data.sales.findIndex(item => item.value === 0);
                 //filter out the 0s in the arrays
@@ -406,7 +410,7 @@
                 const ctx = document.getElementById('myChart').getContext('2d');
                 //get rid of the loading screen
                 let color =  '#e53935'; //red for negative overall percentage
-                if(((data.target2[11].value/data.target[11].value)-1)*100>0){
+                if(((data2.target2[11].value/data2.target[11].value)-1)*100>0){
                     color = '#5cb85c';// green for positive overall percentage
                 }
                 var displayLabel = false;
@@ -488,7 +492,7 @@
                                 },
                                 title: {
                                     display: true,
-                                    text: 'Sales',
+                                    text: 'Volume(Lt)',
                                     font : {
                                         size : 14,
                                         weight: 'lighter',
@@ -522,7 +526,7 @@
                                 padding: 5,
                                 
                                 formatter: function(value, context){
-                                    const num = ((data.target2[11].value/data.target[11].value)-1)*100;
+                                    const num = ((data2.target2[11].value/data2.target[11].value)-1)*100;
                                     fixNum = num.toFixed(2);
                                     if(context.datasetIndex === 3){
                                         return fixNum + "%";

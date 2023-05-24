@@ -217,7 +217,7 @@
         var myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
         myHeaders.append("Authorization", "Basic YmNhOmJjYXh5ejIwMTk=");
-        yHolder = 'Volume'
+        yHolder = 'Volume(Lt)'
         holder = "VOL"
         //check volTrue variable to see if volume or cartons are wanted
         if(!volTrue){
@@ -450,7 +450,7 @@
       t = myChart.config.type
       ten = myChart.data.datasets[0].tension
       //use true for cartons and false for volume
-      if(myChart.config.options.scales.y.title.text == 'Volume'){
+      if(myChart.config.options.scales.y.title.text == 'Volume(Lt)'){
         myChart.destroy();
         updateChart(t,ten, false);
       }else{
