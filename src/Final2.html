@@ -49,11 +49,64 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .btn-toggle {
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+    width: 150px; /* Adjust the width as needed */
+    height: 40px; /* Adjust the height as needed */
+    border-radius: 20px; /* Adjust the border radius as needed */
+    background-color: #888; /* Set the background color of the button */
+    color: #fff; /* Set the text color of the button */
+    cursor: pointer;
+  }
+  
+  .btn-toggle:before{
+    content: "Distribution";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left:0;
+  }
+  .btn-toggle:after {
+    content: "Accumulation";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    right:0;
+  }
+  
+  .btn-toggle:before {
+    left: 0;
+    background-color: #ddd; /* Set the background color of the inactive state */
+  }
+  
+  .btn-toggle:after {
+    right: 0;
+    background-color: #5cb85c; /* Set the background color of the active state */
+  }
+  
+  .btn-toggle.active:before {
+    background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+  }
+  
+  .btn-toggle.active:after {
+    background-color: #ddd; /* Set the background color of the inactive state when the button is not active */
+  }
+  
+  .btn-toggle span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+  }
     </style>
 </head>
 <body class="dx-viewport dx-device-desktop dx-device-generic dx-theme-generic dx-theme-generic-typography dx-color-scheme-light">
     <div class = "dropContainer">
         <select class ='btn btn-success' id = "companyDropdown" onchange = changeChart() ></select>
+        <button type = 'button' id = "dataOrganize" class ='btn btn-toggle active ' onclick=switchData()></button>
     </div>
     <div id="chartContainer">
         <canvas id="myChart"></canvas>
@@ -105,8 +158,9 @@
 
         // Extract the data from the JSON
         let lineChart;
-        updateChart('8030');
-        function updateChart(id){
+        updateChart('8020', true);
+        //if check true then it's a distribution graph else it's accumulation
+        function updateChart(id, check){
             var myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
             myHeaders.append("Authorization", "Basic YmNhOmJjYQ==");
@@ -134,79 +188,208 @@
                 
                 const parse = JSON.parse(result)
                 const table = parse.data.nilai.Table
+                //console.log(table)
                 const target = table[0]
                 const sales1 = table[1]
                 const RDF = table[2]
                 const target2 = table[3] // aka target 2
-                //console.log(table)
-                
-                const data = {
-                target: [
-                    { month: 'Jan 23', value: target.Jan },
-                    { month: 'Feb 23', value: target.Feb },
-                    { month: 'Mar 23', value: target.Mar },
-                    { month: 'Apr 23', value: target.Apr },
-                    { month: 'May 23', value: target.Mei },
-                    { month: 'Jun 23', value: target.Jun },
-                    { month: 'Jul 23', value: target.Jul },
-                    { month: 'Aug 23', value: target.Aug },
-                    { month: 'Sep 23', value: target.Sep },
-                    { month: 'Oct 23', value: target.Okt },
-                    { month: 'Nov 23', value: target.Nov },
-                    { month: 'Dec 23', value: target.Desember }
-                ],
-                sales: [
-                    { month: 'Jan 23', value: sales1.Jan },
-                    { month: 'Feb 23', value: sales1.Feb },
-                    { month: 'Mar 23', value: sales1.Mar },
-                    { month: 'Apr 23', value: sales1.Apr },
-                    { month: 'May 23', value: sales1.Mei },
-                    { month: 'Jun 23', value: sales1.Jun },
-                    { month: 'Jul 23', value: sales1.Jul },
-                    { month: 'Aug 23', value: sales1.Aug },
-                    { month: 'Sep 23', value: sales1.Sep },
-                    { month: 'Oct 23', value: sales1.Okt },
-                    { month: 'Nov 23', value: sales1.Nov },
-                    { month: 'Dec 23', value: sales1.Desember }
-                ],
-                rdf: [
-                    { month: 'Jan 23', value: RDF.Jan },
-                    { month: 'Feb 23', value: RDF.Feb },
-                    { month: 'Mar 23', value: RDF.Mar },
-                    { month: 'Apr 23', value: RDF.Apr },
-                    { month: 'May 23', value: RDF.Mei },
-                    { month: 'Jun 23', value: RDF.Jun },
-                    { month: 'Jul 23', value: RDF.Jul },
-                    { month: 'Aug 23', value: RDF.Aug },
-                    { month: 'Sep 23', value: RDF.Sep },
-                    { month: 'Oct 23', value: RDF.Okt },
-                    { month: 'Nov 23', value: RDF.Nov },
-                    { month: 'Dec 23', value: RDF.Desember }
-                ],
-                target2: [
-                    { month: 'Jan 23', value: target2.Jan },
-                    { month: 'Feb 23', value: target2.Feb },
-                    { month: 'Mar 23', value: target2.Mar },
-                    { month: 'Apr 23', value: target2.Apr },
-                    { month: 'May 23', value: target2.Mei },
-                    { month: 'Jun 23', value: target2.Jun },
-                    { month: 'Jul 23', value: target2.Jul },
-                    { month: 'Aug 23', value: target2.Aug },
-                    { month: 'Sep 23', value: target2.Sep },
-                    { month: 'Oct 23', value: target2.Okt },
-                    { month: 'Nov 23', value: target2.Nov },
-                    { month: 'Dec 23', value: target2.Desember }
-                ],
-            };
+                sum=0
+                const newTarget = []
+                const newSales1 = []
+                const newRDF = []
+                const newTarget2 = []
+                let data;
+                if(!check){
+                    i=0
+                    for(const key in target){
+                        if(key == 'Tipe' || key == 'ID_Dist'){
+                            continue
+                        }
+                        
+                        sum+= target[key]
+                        newTarget[i] = sum
+                        i++;
+                    }
+                    
+                    i=0
+                    sum=0
+                    for(const key in sales1){
+                        if(key == 'Tipe' || key == 'ID_Dist'){
+                            continue
+                        }
+                        if(sales1[key] == 0){
+                            newSales1[i] = 0
+                        }else{
+                            sum+= sales1[key]
+                            newSales1[i] = sum
+                        }
+                        i++;
+                    }
+                    i = 0
+                    sum=0
+                    saleMax = Math.max(...newSales1)
+                    let saleToRDF;
+                    for(const key in RDF){
+                        if(key == 'Tipe' || key == 'ID_Dist'){
+                            continue
+                        }
+                        if(RDF[key] == 0){
+                            newRDF[i] = 0
+                        }else{
+                            saleToRDF = saleMax - RDF[key]
+                            sum+= RDF[key]
+                            newRDF[i] = sum + saleToRDF
+                        }
+                        i++;
+                    }
+                    i = 0;
+                    sum=0
+                    RDFMax = Math.max(...newRDF)
+                    let RDFToFuture;
+                    for(const key in target2){
+                        if(key == 'Tipe' || key == 'ID_Dist'){
+                            continue
+                        }
+                        if(target2[key] == 0){
+                            newTarget2[i] = 0
+                        }else{             
+                            RDFToFuture = RDFMax - target2[key]        
+                            sum+= target2[key] 
+                            newTarget2[i] = sum + RDFToFuture
+                        }
+                        i++;
+                    }
+                    console.log(newTarget)
+                    data = {
+                        target: [
+                        { month: 'Jan 23', value: newTarget[0] },
+                        { month: 'Feb 23', value: newTarget[1] },
+                        { month: 'Mar 23', value: newTarget[2] },
+                        { month: 'Apr 23', value: newTarget[3] },
+                        { month: 'May 23', value: newTarget[4] },
+                        { month: 'Jun 23', value: newTarget[5] },
+                        { month: 'Jul 23', value: newTarget[6] },
+                        { month: 'Aug 23', value: newTarget[7] },
+                        { month: 'Sep 23', value: newTarget[8] },
+                        { month: 'Oct 23', value: newTarget[9] },
+                        { month: 'Nov 23', value: newTarget[10] },
+                        { month: 'Dec 23', value: newTarget[11] }
+                    ],
+                    sales: [
+                        { month: 'Jan 23', value: newSales1[0] },
+                        { month: 'Feb 23', value: newSales1[1] },
+                        { month: 'Mar 23', value: newSales1[2] },
+                        { month: 'Apr 23', value: newSales1[3] },
+                        { month: 'May 23', value: newSales1[4] },
+                        { month: 'Jun 23', value: newSales1[5] },
+                        { month: 'Jul 23', value: newSales1[6] },
+                        { month: 'Aug 23', value: newSales1[7] },
+                        { month: 'Sep 23', value: newSales1[8] },
+                        { month: 'Oct 23', value: newSales1[9] },
+                        { month: 'Nov 23', value: newSales1[10] },
+                        { month: 'Dec 23', value: newSales1[11] }
+                    ],
+                    rdf: [
+                        { month: 'Jan 23', value: newRDF[0] },
+                        { month: 'Feb 23', value: newRDF[1] },
+                        { month: 'Mar 23', value: newRDF[2] },
+                        { month: 'Apr 23', value: newRDF[3] },
+                        { month: 'May 23', value: newRDF[4] },
+                        { month: 'Jun 23', value: newRDF[5] },
+                        { month: 'Jul 23', value: newRDF[6] },
+                        { month: 'Aug 23', value: newRDF[7] },
+                        { month: 'Sep 23', value: newRDF[8] },
+                        { month: 'Oct 23', value: newRDF[9] },
+                        { month: 'Nov 23', value: newRDF[10] },
+                        { month: 'Dec 23', value: newRDF[11] }
+                    ],
+                    target2: [
+                        { month: 'Jan 23', value: newTarget2[0] },
+                        { month: 'Feb 23', value: newTarget2[1] },
+                        { month: 'Mar 23', value: newTarget2[2] },
+                        { month: 'Apr 23', value: newTarget2[3] },
+                        { month: 'May 23', value: newTarget2[4] },
+                        { month: 'Jun 23', value: newTarget2[5] },
+                        { month: 'Jul 23', value: newTarget2[6] },
+                        { month: 'Aug 23', value: newTarget2[7] },
+                        { month: 'Sep 23', value: newTarget2[8] },
+                        { month: 'Oct 23', value: newTarget2[9] },
+                        { month: 'Nov 23', value: newTarget2[10] },
+                        { month: 'Dec 23', value: newTarget2[11] }
+                        ],
+                    }
+                }else{
+                    data = {
+                    target: [
+                        { month: 'Jan 23', value: target.Jan },
+                        { month: 'Feb 23', value: target.Feb },
+                        { month: 'Mar 23', value: target.Mar },
+                        { month: 'Apr 23', value: target.Apr },
+                        { month: 'May 23', value: target.Mei },
+                        { month: 'Jun 23', value: target.Jun },
+                        { month: 'Jul 23', value: target.Jul },
+                        { month: 'Aug 23', value: target.Aug },
+                        { month: 'Sep 23', value: target.Sep },
+                        { month: 'Oct 23', value: target.Okt },
+                        { month: 'Nov 23', value: target.Nov },
+                        { month: 'Dec 23', value: target.Desember }
+                    ],
+                    sales: [
+                        { month: 'Jan 23', value: sales1.Jan },
+                        { month: 'Feb 23', value: sales1.Feb },
+                        { month: 'Mar 23', value: sales1.Mar },
+                        { month: 'Apr 23', value: sales1.Apr },
+                        { month: 'May 23', value: sales1.Mei },
+                        { month: 'Jun 23', value: sales1.Jun },
+                        { month: 'Jul 23', value: sales1.Jul },
+                        { month: 'Aug 23', value: sales1.Aug },
+                        { month: 'Sep 23', value: sales1.Sep },
+                        { month: 'Oct 23', value: sales1.Okt },
+                        { month: 'Nov 23', value: sales1.Nov },
+                        { month: 'Dec 23', value: sales1.Desember }
+                    ],
+                    rdf: [
+                        { month: 'Jan 23', value: RDF.Jan },
+                        { month: 'Feb 23', value: RDF.Feb },
+                        { month: 'Mar 23', value: RDF.Mar },
+                        { month: 'Apr 23', value: RDF.Apr },
+                        { month: 'May 23', value: RDF.Mei },
+                        { month: 'Jun 23', value: RDF.Jun },
+                        { month: 'Jul 23', value: RDF.Jul },
+                        { month: 'Aug 23', value: RDF.Aug },
+                        { month: 'Sep 23', value: RDF.Sep },
+                        { month: 'Oct 23', value: RDF.Okt },
+                        { month: 'Nov 23', value: RDF.Nov },
+                        { month: 'Dec 23', value: RDF.Desember }
+                    ],
+                    target2: [
+                        { month: 'Jan 23', value: target2.Jan },
+                        { month: 'Feb 23', value: target2.Feb },
+                        { month: 'Mar 23', value: target2.Mar },
+                        { month: 'Apr 23', value: target2.Apr },
+                        { month: 'May 23', value: target2.Mei },
+                        { month: 'Jun 23', value: target2.Jun },
+                        { month: 'Jul 23', value: target2.Jul },
+                        { month: 'Aug 23', value: target2.Aug },
+                        { month: 'Sep 23', value: target2.Sep },
+                        { month: 'Oct 23', value: target2.Okt },
+                        { month: 'Nov 23', value: target2.Nov },
+                        { month: 'Dec 23', value: target2.Desember }
+                        ],
+                    };
+                }
             // Find the index where the sales value stops or goes to 0
             const stopIndex = data.sales.findIndex(item => item.value === 0);
             
+            //console.log(data.sales)
             // Create a new array for target data with null values after stopIndex
-            const filteredRDF = data.rdf.filter(item=>item.value !=0 )
+            const filteredRDF = data.rdf.filter(item=>item.value != 0)
+            //console.log(filteredRDF)
             const filteredTarget = data.target2.filter(item=>item.value !=0 )
+            
             const RDFNew = new Array(stopIndex-1).fill(null).concat(filteredRDF.map(item => item.value));
             const target2New = new Array(stopIndex-2+filteredRDF.length).fill(null).concat(filteredTarget.map(item => item.value));
-
+            
             // Create a new chart
             const filteredSales = data.sales.filter(item=>item.value != 0)
             const ctx = document.getElementById('myChart').getContext('2d');
@@ -303,8 +486,24 @@
             loaderContainer.style.display = 'flex';
             id = companyDropdown.value
             lineChart.destroy()
-            console.log(id)
-            updateChart(id)
+            button = document.getElementById('dataOrganize')
+            if (!button.classList.contains('active')) {
+                button.classList.add('active');
+            }
+            updateChart(id, true)
+        }
+        function switchData(){
+            button = document.getElementById('dataOrganize')
+            check = false
+            if (button.classList.contains('active')) {
+                button.classList.remove('active');
+            } else {
+                button.classList.add('active');
+                check = true
+            }
+            id = companyDropdown.value
+            lineChart.destroy()
+            updateChart(id, check)
         }
 </script>
 
