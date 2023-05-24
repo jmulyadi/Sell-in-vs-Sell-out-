@@ -14,6 +14,7 @@
 
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
   </head>
+  <!--Add margins so there space between everything-->
   <style>
     body {
         margin-top: 20px; /* Add margin to move everything down */
@@ -22,12 +23,8 @@
         max-width: 1000px;
         max-height: 500px;
     }
-    .inactive {
-    background-color: #ccc; /* Set the background color of the inactive button */
-    color: #888; /* Set the text color of the inactive button */
-    }
-</style>
-
+  </style>
+<!--format the buttons-->
 <style>
   .btn-toggle {
     position: relative;
@@ -40,7 +37,7 @@
     color: #fff; /* Set the text color of the button */
     cursor: pointer;
   }
-  
+  /*Places Line Chart on top and Bar Chart Bottom*/
   .btn-toggle:before{
     content: "Line Chart";
     display: flex;
@@ -55,7 +52,7 @@
     justify-content: center;
     right:0;
   }
-  
+  /*Changes colors based on which part is active*/
   .btn-toggle:before {
     left: 0;
     background-color: #ddd; /* Set the background color of the inactive state */
@@ -81,6 +78,7 @@
     transform: translate(-50%, -50%);
     font-weight: bold;
   }
+  /*formating for the line tension button*/
   .tension-btn:before{
     content: "Curved Line";
     display: flex;
@@ -104,6 +102,7 @@
   .tension-btn.active:after {
     background-color: #ddd; /* Set the background color of the inactive state when the button is active */
   }
+  /*formatting for the change unit button*/
   .unit:before{
     content: "Volume";
     display: flex;
@@ -127,8 +126,8 @@
     background-color: #ddd; /* Set the background color of the active state when the button is active */
   }
 </style>
+<!--This is where all the buttons and chart is made and given ids to use later-->
 <body class="dx-viewport dx-device-desktop dx-device-generic dx-theme-generic dx-theme-generic-typography dx-color-scheme-light" style>
-        
         <div class = "container">
             <select class ='btn btn-success' id = "companyDropdown" onchange = changeChart() ></select>
             <div id = "typeContainer">
@@ -142,6 +141,7 @@
           <canvas id="myChart"></canvas>
         </div>
         <style>
+          /*more margins and formating for the chart and buttons*/
             .btn {
                 margin-right:10px; 
                 margin-left:10px; 
@@ -152,7 +152,7 @@
               justify-content: center;
               align-items: center;
               margin: 0 auto; /* Center horizontally */
-              flex-wrap: wrap; /* Added property */
+              flex-wrap: wrap; /* used to make the buttons wrap around if the page is too small */
             }
             .chartContainer{
               display: flex;
@@ -165,7 +165,7 @@
             }
         </style>
   <script>
-    // Sample datas
+  //fetch data here
   var myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
   myHeaders.append("Authorization", "Basic YmNhOmJjYXh5ejIwMTk=");
@@ -190,252 +190,247 @@
   fetch("https://safe.ultrajaya.co.id/safeapi/andro/ambil", requestOptions)
     .then(response => response.text())
     .then(result => {
+      //result is in the form of a JSON String so it needs to be parsed to be readable 
       const o = JSON.parse(result)
+      //turn into a table 
       const companyTable = o.data.nilai.Table
-      //tomorrow you have to get the names and put them in a drop down
-      //populateDropdown(companyTable)
-      
-      // Replace "companyDropdown" with the ID of your dropdown element
+      //make sure the dropdown is empty
       companyDropdown.innerHTML = "";
+      //populate the drop down with the company names and corresponding ids
       companyTable.forEach(company => {
-      const option = document.createElement("option");
-      option.value = company.CompanyCode; // Use Company_Code instead of CompanyCode
-      option.text = company.Desc_Company; // Use Company_Name instead of CompanyName
-      companyDropdown.add(option);
+        const option = document.createElement("option");
+        option.value = company.CompanyCode; // Use Company_Code instead of CompanyCode
+        option.text = company.Desc_Company; // Use Company_Name instead of CompanyName
+        companyDropdown.add(option);
           });
       })
+      //return error if data can't be fetched
     .catch(error => console.log('Error', error));
-
-//   function populateDropdown(companyTable) {
-//     const dropdown = document.getElementById("companyDropdown");
-//     dropdown.innerHTML = "";
-//     companyTable.forEach(company => {
-//         console.log(company.CompanyCode);
-//         const option = document.createElement("option");
-//         option.value = company.CompanyCode;
-//         option.text = company.Ddesc_Company;
-//         dropdown.add(option);
-//     });
-// }
-    var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
-    myHeaders.append("Authorization", "Basic YmNhOmJjYQ==");
-
-    var raw = JSON.stringify({
-    "action": "1",
-    "key": "8870",
-    "mvitem": "7þ",
-    "othval": "VOL",
-    "serverdb": "1000",
-    "sid": "",
-    "sp": "[SD].[BI_DistDashboard]"
-    });
-
-    var requestOptions = {
-    method: 'POST',
-    headers: myHeaders,
-    body: raw,
-    redirect: 'follow'
-    };
-    
-    fetch("https://safe.ultrajaya.co.id/safeapi/andro/ambil", requestOptions)
-    .then(response => response.text())
-    .then(result => {
-        updateChart('line',.4, true);
-    })
-    .catch(error => console.log)
-    //update chart 
+    //create the chart
+    updateChart('line',.4, true);
     
     function updateChart(type, ten, volTrue) {
         // Get the selected company code from the dropdown
-        const oldCode = companyDropdown.value
+        var oldCode = companyDropdown.value
+        //set default to the first one in the distrubution list 
+        if(oldCode == ''){
+          oldCode = '8020'
+        }
+        //fetch data for the graph
         var myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
         myHeaders.append("Authorization", "Basic YmNhOmJjYXh5ejIwMTk=");
         yHolder = 'Volume'
         holder = "VOL"
+        //check volTrue variable to see if volume or cartons are wanted
         if(!volTrue){
           holder = "CAR"
           yHolder = 'Carton'
         }
-        //console.log(oldCode)
+        //needed to fetch data check postman to get code
         var raw = JSON.stringify({
-        "action": "1",
-        "key": oldCode,
-        "mvitem": "7þ",
-        "othval": holder,
-        "serverdb": "1000",
-        "sid": "",
-        "sp": "[SD].[BI_DistDashboard]"
+          "action": "1",
+          "key": oldCode,
+          "mvitem": "7þ",
+          "othval": holder,
+          "serverdb": "1000",
+          "sid": "",
+          "sp": "[SD].[BI_DistDashboard]"
         });
         var requestOptions = {
-        method: 'POST',
-        headers: myHeaders,
-        body: raw,
-        redirect: 'follow'
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
         };
         fetch("https://safe.ultrajaya.co.id/safeapi/andro/ambil", requestOptions)
         .then(response => response.text())
         .then(result => {
-            const load = JSON.parse(result)
-            //console.log(result)
-        // Accessing values
-        const table =   load.data.nilai.Table
-        const tahun = []
-        const bulan = []
-        const bulanName = []
-        const volIn = []
-        const volOut = []
-        var i = 0
-        
-        for (const entry of table) {
-          tahun[i] = entry.Tahun;
-          bulan[i] = entry.Bulan;
-          bulanName[i] = entry.Bulan_Name;
-          //add an if statement to change vol to products 
-          volIn[i] = entry.Vol_In;
-          volOut[i] = entry.Vol_Out;
-          i++
-        }
-        opaque = .2;
-        if(type == 'bar'){
-          opaque = 1;
-        }
-        const data = {
-          labels: bulanName,
-          datasets: [{
-          label: `Selling In: `,
-          data: volOut,
-          borderColor: 'rgb(75, 192, 192)',
-          backgroundColor: 'rgba(75, 192, 192,'+opaque+')',//.2
-          tension: ten,
-          },
-          {
-          label: `Selling Out: `,
-          data: volIn,
-          borderColor: 'rgb(192, 75, 192)',
-          backgroundColor: 'rgba(192, 75, 192,'+opaque+')',
-          tension: ten,
-          }]
-        }
-      // Chart configuration
-      let graphType = type
-      
-      const config = {
-        type: graphType,
-        data: data,
-        options: {
-          scales: {
+          //parse result
+          const load = JSON.parse(result)
+          // create table and individual arrays for data
+          const table = load.data.nilai.Table
+          const tahun = []
+          const bulan = []
+          const bulanName = []
+          const volIn = []
+          const volOut = []
+          //set i for indexing
+          var i = 0
+          //loop through table to put the values into the arrays
+          for (const entry of table) {
+            tahun[i] = entry.Tahun;
+            bulan[i] = entry.Bulan;
+            bulanName[i] = entry.Bulan_Name;
+            //add an if statement to change vol to products 
+            volIn[i] = entry.Vol_In;
+            volOut[i] = entry.Vol_Out;
+            i++
+          }
+          //create a variable opaque so it is .2 for line chart and 1 for bar chart
+          //it controls the see throughness of the graph
+          opaque = .2;
+          if(type == 'bar'){
+            opaque = 1;
+          }
+          //create data that will used to graph
+          const data = {
+            labels: bulanName,
+            datasets: [{
+              //name
+              label: `Selling In: `,
+              //data from fetch
+              data: volOut,
+              //colors 
+              borderColor: 'rgb(75, 192, 192)',
+              backgroundColor: 'rgba(75, 192, 192,'+opaque+')', 
+              tension: ten, // inputed variable to controls how tight the line is meaning curved or straight
+            },
+            {
+              label: `Selling Out: `,
+              data: volIn,
+              borderColor: 'rgb(192, 75, 192)',
+              backgroundColor: 'rgba(192, 75, 192,'+opaque+')',
+              tension: ten,
+            }]
+          }
+        // Chart configuration
+        const config = {
+          type: type, //type is either line or bar 
+          data: data, // this is the data created right above this
+          options: {
+            scales: {
+              //x axis
               x: {
                   title: {
-                      display: true,
-                      text : "Month",
-                      font : {
-                          size : 14,
-                          weight: 'lighter',
-                          
-                      },
-                      color: 'indigo'
+                    display: true,
+                    text : "Month",
+                    font : {
+                        size : 14,
+                        weight: 'lighter',
+                    },
+                    color: 'indigo'
                   },
               },
-            y: {
-              beginAtZero: true,
-              ticks: {
-                callback: function (value) {
-                  return value.toLocaleString(); // Format y-axis labels with commas
-                }
-              },
-              title: {
+              //y axis
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function (value) {
+                    return value.toLocaleString(); // Format y-axis labels with commas
+                  }
+                },
+                title: {
                   display: true,
-                  text : yHolder,
+                  text : yHolder,// yHolder is either Volume of Cartons based on what is active
                   font : {
                       size : 14,
                       weight: 'lighter',
                   },
                   color: 'indigo'
+                }
               }
-            }
-          },
-          plugins: {
-            title: {
-              display: true,
-              //<span class="font-semibold text-base text-indigo-900">Summary DO 2023</span>
-              text: 'Selling In vs Selling Out',
-              font: {
+            },
+            plugins: {
+              title: {
+                display: true,
+                text: 'Selling In vs Selling Out',
+                font: {
                   weight: 'bold',      // or '600'
                   size: '16',          // or 16
+                },
+                color: 'indigo'      // or '#3B82F6'
               },
-              color: 'indigo'      // or '#3B82F6'
-            },
-            legend: {
-              display: true,
-              position: 'top'
+              legend: {
+                display: true,
+                position: 'top'
+              }
             }
           }
-        }
-      };
-      
-      myChart = new Chart(document.getElementById('myChart'), config);
+        };
+        //create the chart
+        myChart = new Chart(document.getElementById('myChart'), config);
       })
+      //throw error
       .catch(error => console.log('error', error));  
-        // TODO: Update the chart with the new data
     }
+    //function change to bar or line chart
     function changeChart(){
+      //check the type of chart
       var type = document.getElementById('chartType')
+      //check current tension of the line
       var tension = document.getElementById('switchTension')
-      
+      //makes the toggle button switch back to curved if it is on straight
       if (!tension.classList.contains('active')) {
         tension.classList.add('active');
       }
+      //changes button to either line or bar based on what is active
       if(!type.classList.contains('active')){
         type.classList.add('active')
       }
+      //check the current units of the graph and keep them the same
       checkUnit = true
       if(myChart.config.options.scales.y.title.text != 'Volume'){
         checkUnit = false
       }
+      //destroy the current chart
       myChart.destroy();
+      //make the new chart
       updateChart('line',.4, checkUnit);
     }
-    var chartTypeButton = document.getElementById('chartType');
     function toggleChartType(){
+      //get the current chart type
+      var chartTypeButton = document.getElementById('chartType');
+      //change button to correct active state of bar or line chart
       if (chartTypeButton.classList.contains('active')) {
         chartTypeButton.classList.remove('active');
       } else {
         chartTypeButton.classList.add('active');
       }
       type = "bar"
+      // if current type is bar then change to line and vice versa
       if(myChart.config.type == 'bar'){
         type = 'line'
+        //check line tension
         var tension = document.getElementById('switchTension')
+        //switch to correct active state of line tension
         if (!tension.classList.contains('active')) {
           tension.classList.add('active');
         }
       }
       checkUnit = true
+      //check and change to the correct active state of the units
       if(myChart.config.options.scales.y.title.text != 'Volume'){
         checkUnit = false
       }
+      //destroy chart
       myChart.destroy();
+      //make new chart
       updateChart(type,.4, checkUnit);
     }
     
     function switchTension(){
+      //if bar chart don't do anything
       if(myChart.config.type != 'line'){
         return
       }
+      //switch the active state of the button to correct straight or curved line
       var tension = document.getElementById('switchTension')
       if (tension.classList.contains('active')) {
         tension.classList.remove('active');
       } else {
         tension.classList.add('active');
       }
+      //check the units and give display the correct state
       checkUnit = true
       if(myChart.config.options.scales.y.title.text != 'Volume'){
         checkUnit = false
       }
+      //check the type of chart and give display the correct state
       if(myChart.config.type == 'line'){
+        //destroy chart
         myChart.destroy()
+        //change tension of chart accordingly
         if(myChart.data.datasets[0].tension == .4){
           updateChart('line',0, checkUnit);
         }else{
@@ -443,15 +438,20 @@
         }
       }
     }
+    //change the units on the graph
     function changeUnits(){
+      //get curruent button
       var unit = document.getElementById('unitButton')
+      //change the to the correct active state of either volume or cartons
       if (unit.classList.contains('active')) {
         unit.classList.remove('active');
       } else {
         unit.classList.add('active');
       }
+      //make sure the tension and type of the graph is the same as previously
       t = myChart.config.type
       ten = myChart.data.datasets[0].tension
+      //use true for cartons and false for volume
       if(myChart.config.options.scales.y.title.text == 'Volume'){
         myChart.destroy();
         updateChart(t,ten, false);
