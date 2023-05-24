@@ -202,20 +202,17 @@
         option.value = company.CompanyCode; // Use Company_Code instead of CompanyCode
         option.text = company.Desc_Company; // Use Company_Name instead of CompanyName
         companyDropdown.add(option);
+        updateChart('line',.4, true);
           });
       })
       //return error if data can't be fetched
     .catch(error => console.log('Error', error));
     //create the chart
-    updateChart('line',.4, true);
+    
     
     function updateChart(type, ten, volTrue) {
         // Get the selected company code from the dropdown
         var oldCode = companyDropdown.value
-        //set default to the first one in the distrubution list 
-        if(oldCode == ''){
-          oldCode = '8020'
-        }
         //fetch data for the graph
         var myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
@@ -378,6 +375,7 @@
       //make the new chart
       updateChart('line',.4, checkUnit);
     }
+    //
     function toggleChartType(){
       //get the current chart type
       var chartTypeButton = document.getElementById('chartType');
