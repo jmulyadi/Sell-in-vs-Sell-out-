@@ -353,17 +353,20 @@
     }
     //function change to correct distributer
     function changeChart(){
+      //input variables
+      var inputType  = 'line';
+      var inputTension = .4;
       //check the type of chart
       var type = document.getElementById('chartType')
       //check current tension of the line
       var tension = document.getElementById('switchTension')
       //makes the toggle button switch back to curved if it is on straight
       if (!tension.classList.contains('active')) {
-        tension.classList.add('active');
+        inputTension = 0;
       }
       //changes button to either line or bar based on what is active
       if(!type.classList.contains('active')){
-        type.classList.add('active')
+        inputType = 'bar'
       }
       //check the current units of the graph and keep them the same
       checkUnit = true
@@ -373,10 +376,12 @@
       //destroy the current chart
       myChart.destroy();
       //make the new chart
-      updateChart('line',.4, checkUnit);
+      updateChart(inputType,inputTension, checkUnit);
     }
     //
     function toggleChartType(){
+      //input variable 
+      inputTension = .4;
       //get the current chart type
       var chartTypeButton = document.getElementById('chartType');
       //change button to correct active state of bar or line chart
@@ -393,18 +398,18 @@
         var tension = document.getElementById('switchTension')
         //switch to correct active state of line tension
         if (!tension.classList.contains('active')) {
-          tension.classList.add('active');
+          inputTension = 0;
         }
       }
       checkUnit = true
       //check and change to the correct active state of the units
-      if(myChart.config.options.scales.y.title.text != 'Volume'){
+      if(myChart.config.options.scales.y.title.text != 'Volume(Lt)'){
         checkUnit = false
       }
       //destroy chart
       myChart.destroy();
       //make new chart
-      updateChart(type,.4, checkUnit);
+      updateChart(type, inputTension, checkUnit);
     }
     
     function switchTension(){
@@ -421,7 +426,7 @@
       }
       //check the units and give display the correct state
       checkUnit = true
-      if(myChart.config.options.scales.y.title.text != 'Volume'){
+      if(myChart.config.options.scales.y.title.text != 'Volume(Lt)'){
         checkUnit = false
       }
       //check the type of chart and give display the correct state
