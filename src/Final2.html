@@ -122,6 +122,8 @@
         <div id = "loader "class="loader"></div>
     </div>
     <script>
+    //create chart variable
+    let lineChart;
     //fetch data from API
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
@@ -156,15 +158,15 @@
             const option = document.createElement("option");
             option.value = company.CompanyCode; // Use Company_Code instead of CompanyCode
             option.text = company.Desc_Company; // Use Company_Name instead of CompanyName
-            companyDropdown.add(option);// add option to dropdown 
+            companyDropdown.add(option);// add option to dropdown  
         });
+        //get current id
+        id =  companyDropdown.value
+        //create base chart
+        updateChart(id, true);
     })
     //throw error
     .catch(error => console.log('Error', error));
-        //create variable for the chart
-        let lineChart;
-        //create base chart
-        updateChart('8020', true);
         //if check true then it's a distribution graph else it's accumulation
         function updateChart(id, check){
             //fetch data with new id
@@ -390,9 +392,8 @@
                             { month: 'Oct 23', value: target2.Okt },
                             { month: 'Nov 23', value: target2.Nov },
                             { month: 'Dec 23', value: target2.Desember }
-                            ],
+                        ],
                         };
-                    
                 data = data1;
                 if(!check){
                     data = data2
@@ -556,12 +557,14 @@
             //destroy current chart
             lineChart.destroy()
             button = document.getElementById('dataOrganize')
+            //varible to check if the chart should be distribution or accumulation
+            check = true;
             //change chart back to distrubution if it is accumulation
             if (!button.classList.contains('active')) {
-                button.classList.add('active');
+                check = false;
             }
             //create chart
-            updateChart(id, true)
+            updateChart(id, check)
         }
         //change data to accumulation or distribution
         function switchData(){

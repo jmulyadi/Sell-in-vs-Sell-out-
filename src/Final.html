@@ -202,8 +202,8 @@
         option.value = company.CompanyCode; // Use Company_Code instead of CompanyCode
         option.text = company.Desc_Company; // Use Company_Name instead of CompanyName
         companyDropdown.add(option);
+        });
         updateChart('line',.4, true);
-          });
       })
       //return error if data can't be fetched
     .catch(error => console.log('Error', error));
@@ -351,7 +351,7 @@
       //throw error
       .catch(error => console.log('error', error));  
     }
-    //function change to bar or line chart
+    //function change to correct distributer
     function changeChart(){
       //check the type of chart
       var type = document.getElementById('chartType')
