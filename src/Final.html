@@ -4,7 +4,7 @@
 <!-- Required meta tags -->
 <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Line Chart</title>
+  <title>Selling In vs Selling Out</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.js"></script>
   <link rel="stylesheet"
   href=
@@ -301,20 +301,24 @@
           volOut[i] = entry.Vol_Out;
           i++
         }
+        opaque = .2;
+        if(type == 'bar'){
+          opaque = 1;
+        }
         const data = {
           labels: bulanName,
           datasets: [{
           label: `Selling In: `,
           data: volOut,
           borderColor: 'rgb(75, 192, 192)',
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          backgroundColor: 'rgba(75, 192, 192,'+opaque+')',//.2
           tension: ten,
           },
           {
           label: `Selling Out: `,
           data: volIn,
           borderColor: 'rgb(192, 75, 192)',
-          backgroundColor: 'rgba(192, 75, 192, 0.2)',
+          backgroundColor: 'rgba(192, 75, 192,'+opaque+')',
           tension: ten,
           }]
         }
@@ -381,8 +385,21 @@
         // TODO: Update the chart with the new data
     }
     function changeChart(){
+      var type = document.getElementById('chartType')
+      var tension = document.getElementById('switchTension')
+      
+      if (!tension.classList.contains('active')) {
+        tension.classList.add('active');
+      }
+      if(!type.classList.contains('active')){
+        type.classList.add('active')
+      }
+      checkUnit = true
+      if(myChart.config.options.scales.y.title.text != 'Volume'){
+        checkUnit = false
+      }
       myChart.destroy();
-      updateChart('line',.4);
+      updateChart('line',.4, checkUnit);
     }
     var chartTypeButton = document.getElementById('chartType');
     function toggleChartType(){
