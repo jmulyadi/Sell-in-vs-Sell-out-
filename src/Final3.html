@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- title -->
+    <title>Sales vs Target</title>
+    <!--formatting script for bootstrap and Chart.js-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js" integrity="sha512-JPcRR8yFa8mmCsfrw4TNte1ZvF1e3+1SdGMslZvmrzDYxS69J7J49vkFL8u6u8PlPJK+H3voElBtUCzaXj+6ig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    
+    <style>
+        /*add margins between everything*/
+        body {
+            margin-top: 20px; /* Add margin to move everything down */
+        }
+        /*size the chart and container*/
+        #myChart {
+            width: 100%; /* Set chart width to 100% */
+            height: 100%;
+            max-width: 900px;
+            max-height: 700px;
+            min-height: 500px;
+        }
+        #chartContainer {
+            width: 80%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto; /* Center horizontally */
+        }
+        .btn {
+            margin-right:10px; 
+            margin-left:10px; 
+            margin-bottom: 10px;
+        }
+        /*add a loading screen*/
+        .loader {
+            border: 16px solid #f3f3f3; /* Light grey */
+            border-top: 16px solid #3498db; /* Blue */
+            border-radius: 50%;
+            background-position: center center;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+        }
+        /*formating the container for the drop down menu*/
+        .dropContainer{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto; /* Center horizontally */
+        }
+        /*more specifications for the loader*/
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /*format the button for accumulation vs distribution*/
+        .btn-toggle {
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+            width: 150px; /* Adjust the width as needed */
+            height: 40px; /* Adjust the height as needed */
+            border-radius: 20px; /* Adjust the border radius as needed */
+            background-color: #888; /* Set the background color of the button */
+            color: #fff; /* Set the text color of the button */
+            cursor: pointer;
+        }
+        .btn-toggle:before{
+            content: "Distribution";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            left:0;
+        }
+        .btn-toggle:after {
+            content: "Accumulation";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            right:0;
+        }
+        /*makes the color change based on the active state*/
+        .btn-toggle:before {
+            left: 0;
+            background-color: #ddd; /* Set the background color of the inactive state */
+        }
+        
+        .btn-toggle:after {
+            right: 0;
+            background-color: #5cb85c; /* Set the background color of the active state */
+        }
+        
+        .btn-toggle.active:before {
+            background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+        }
+        
+        .btn-toggle.active:after {
+            background-color: #ddd; /* Set the background color of the inactive state when the button is not active */
+        }
+        
+        .btn-toggle span {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+        }
+        .type:before{
+            content: "Line Chart";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            left:0;
+            background-color: #ddd; /* Set the background color of the active state when the button is active */
+        }
+        .type:after{
+            content: "Bar Chart";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            left:0;
+            background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+        }
+        .type.active:before{
+            background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+        }
+        .type.active:after{
+            background-color: #ddd; /* Set the background color of the active state when the button is active */
+        }
+    </style>
+</head>
+<!--Create all the containers, buttons, and chart with their ids-->
+<body class="dx-viewport dx-device-desktop dx-device-generic dx-theme-generic dx-theme-generic-typography dx-color-scheme-light">
+    <div class = "dropContainer">
+        <select class ='btn btn-success' id = "companyDropdown" onchange = changeChart() ></select>
+        <button type = 'button' id = "dataOrganize" class ='btn btn-toggle active ' onclick=switchData()></button>
+        <button type = 'button' id = "chartType" class ='btn btn-toggle type active ' onclick=switchChart()></button>
+    </div>
+    <div id="chartContainer">
+        <canvas id="myChart"></canvas>
+    </div>
+    <div id="loaderContainer" style="display: flex; justify-content: center; align-items: center; height: 0vh;">
+        <div id = "loader "class="loader"></div>
+    </div>
+    <script>
+    //create chart variable
+    let lineChart;
+    //fetch data from API
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", "Basic YmNhOmJjYXh5ejIwMTk=");
+    var myChart;
+    var raw = JSON.stringify({
+        "action": "1",
+        "key": "8030",
+        "mvitem": "71022217þ",
+        "othval": "LIST_DIST",
+        "serverdb": "1000",
+        "sid": "9300957",
+        "sp": "[SD].[BI_DistDashboard]"
+    });
+
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
+    };
+
+    fetch("https://safe.ultrajaya.co.id/safeapi/andro/ambil", requestOptions)
+    .then(response => response.text())
+    .then(result => {
+        //parse the result into a table
+        const o = JSON.parse(result)
+        const companyTable = o.data.nilai.Table
+        //make sure drop down is empty
+        companyDropdown.innerHTML = "";
+        companyTable.forEach(company => {
+            const option = document.createElement("option");
+            option.value = company.CompanyCode; // Use Company_Code instead of CompanyCode
+            option.text = company.Desc_Company; // Use Company_Name instead of CompanyName
+            companyDropdown.add(option);// add option to dropdown  
+        });
+        //get current id
+        id =  companyDropdown.value
+        //create base chart
+        updateChart(id, true, 'line');
+    })
+    //throw error
+    .catch(error => console.log('Error', error));
+        //if check true then it's a distribution graph else it's accumulation
+        function updateChart(id, check, difType){
+            //fetch data with new id
+            var myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+            myHeaders.append("Authorization", "Basic YmNhOmJjYQ==");
+            var raw = JSON.stringify({
+                "action": "1",
+                "key": id,
+                "mvitem": "10114þ050",
+                "othval": "SLS_TGT",
+                "serverdb": "1000",
+                "sid": "0",
+                "sp": "[SD].[BI_DistDashboard]"
+            });
+
+            var requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+            };
+            fetch("https://safe.ultrajaya.co.id/safeapi/andro/ambil", requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                    //parse result and make a table
+                    const parse = JSON.parse(result)
+                    const table = parse.data.nilai.Table
+                    //make arrays to hold data for distribution data
+                    const target = table[0]
+                    const sales1 = table[1]
+                    const RDF = table[2]
+                    const target2 = table[3] 
+                    sum=0
+                    //create separate data to hold accumulation data
+                    const newTarget = []
+                    const newSales1 = []
+                    const newRDF = []
+                    const newTarget2 = []
+                    let data;
+                    //if check is false then accumulation data is wanted
+                    
+                        //index variable
+                        i=0
+                        for(const key in target){
+                            //skip type and id
+                            if(key == 'Tipe' || key == 'ID_Dist'){
+                                continue
+                            }
+                            //sum holds the previous amount 
+                            sum+= target[key]
+                            //fill the array with data
+                            newTarget[i] = sum
+                            i++;
+                        }
+                        
+                        i=0
+                        sum=0
+                        for(const key in sales1){
+                            if(key == 'Tipe' || key == 'ID_Dist'){
+                                continue
+                            }
+                            //if there is no data then keep it 0
+                            if(sales1[key] == 0){
+                                newSales1[i] = 0
+                            }else{
+                                sum+= sales1[key]
+                                newSales1[i] = sum
+                            }
+                            i++;
+                        }
+                        i = 0
+                        sum=0
+                        saleMax = Math.max(...newSales1)
+                        let saleToRDF;
+                        for(const key in RDF){
+                            if(key == 'Tipe' || key == 'ID_Dist'){
+                                continue
+                            }
+                            if(RDF[key] == 0){
+                                newRDF[i] = 0
+                            }else{
+                                //for RDF the graph has to be shifted up so that it is added the previous sales
+                                saleToRDF = saleMax - RDF[key]
+                                sum+= RDF[key]
+                                newRDF[i] = sum + saleToRDF
+                            }
+                            i++;
+                        }
+                        i = 0;
+                        sum=0
+                        RDFMax = Math.max(...newRDF)
+                        let RDFToFuture;
+                        for(const key in target2){
+                            if(key == 'Tipe' || key == 'ID_Dist'){
+                                continue
+                            }
+                            if(target2[key] == 0){
+                                newTarget2[i] = 0
+                            }else{             
+                                //Future prediction needs to be shifted up and added to previous RDF sales
+                                RDFToFuture = RDFMax - target2[key]        
+                                sum+= target2[key] 
+                                newTarget2[i] = sum + RDFToFuture
+                            }
+                            i++;
+                        }
+                        //create the data for target, sales, RDF, and target2 or future predictions
+                        data2 = {
+                            //data for accumulation graph
+                            target: [
+                            { month: 'Jan 23', value: newTarget[0] },
+                            { month: 'Feb 23', value: newTarget[1] },
+                            { month: 'Mar 23', value: newTarget[2] },
+                            { month: 'Apr 23', value: newTarget[3] },
+                            { month: 'May 23', value: newTarget[4] },
+                            { month: 'Jun 23', value: newTarget[5] },
+                            { month: 'Jul 23', value: newTarget[6] },
+                            { month: 'Aug 23', value: newTarget[7] },
+                            { month: 'Sep 23', value: newTarget[8] },
+                            { month: 'Oct 23', value: newTarget[9] },
+                            { month: 'Nov 23', value: newTarget[10] },
+                            { month: 'Dec 23', value: newTarget[11] }
+                        ],
+                        sales: [
+                            { month: 'Jan 23', value: newSales1[0] },
+                            { month: 'Feb 23', value: newSales1[1] },
+                            { month: 'Mar 23', value: newSales1[2] },
+                            { month: 'Apr 23', value: newSales1[3] },
+                            { month: 'May 23', value: newSales1[4] },
+                            { month: 'Jun 23', value: newSales1[5] },
+                            { month: 'Jul 23', value: newSales1[6] },
+                            { month: 'Aug 23', value: newSales1[7] },
+                            { month: 'Sep 23', value: newSales1[8] },
+                            { month: 'Oct 23', value: newSales1[9] },
+                            { month: 'Nov 23', value: newSales1[10] },
+                            { month: 'Dec 23', value: newSales1[11] }
+                        ],
+                        rdf: [
+                            { month: 'Jan 23', value: newRDF[0] },
+                            { month: 'Feb 23', value: newRDF[1] },
+                            { month: 'Mar 23', value: newRDF[2] },
+                            { month: 'Apr 23', value: newRDF[3] },
+                            { month: 'May 23', value: newRDF[4] },
+                            { month: 'Jun 23', value: newRDF[5] },
+                            { month: 'Jul 23', value: newRDF[6] },
+                            { month: 'Aug 23', value: newRDF[7] },
+                            { month: 'Sep 23', value: newRDF[8] },
+                            { month: 'Oct 23', value: newRDF[9] },
+                            { month: 'Nov 23', value: newRDF[10] },
+                            { month: 'Dec 23', value: newRDF[11] }
+                        ],
+                        target2: [
+                            { month: 'Jan 23', value: newTarget2[0] },
+                            { month: 'Feb 23', value: newTarget2[1] },
+                            { month: 'Mar 23', value: newTarget2[2] },
+                            { month: 'Apr 23', value: newTarget2[3] },
+                            { month: 'May 23', value: newTarget2[4] },
+                            { month: 'Jun 23', value: newTarget2[5] },
+                            { month: 'Jul 23', value: newTarget2[6] },
+                            { month: 'Aug 23', value: newTarget2[7] },
+                            { month: 'Sep 23', value: newTarget2[8] },
+                            { month: 'Oct 23', value: newTarget2[9] },
+                            { month: 'Nov 23', value: newTarget2[10] },
+                            { month: 'Dec 23', value: newTarget2[11] }
+                            ],
+                        }
+                    
+                        //data for distribution
+                        data1 = {
+                        target: [
+                            { month: 'Jan 23', value: target.Jan },
+                            { month: 'Feb 23', value: target.Feb },
+                            { month: 'Mar 23', value: target.Mar },
+                            { month: 'Apr 23', value: target.Apr },
+                            { month: 'May 23', value: target.Mei },
+                            { month: 'Jun 23', value: target.Jun },
+                            { month: 'Jul 23', value: target.Jul },
+                            { month: 'Aug 23', value: target.Aug },
+                            { month: 'Sep 23', value: target.Sep },
+                            { month: 'Oct 23', value: target.Okt },
+                            { month: 'Nov 23', value: target.Nov },
+                            { month: 'Dec 23', value: target.Desember }
+                        ],
+                        sales: [
+                            { month: 'Jan 23', value: sales1.Jan },
+                            { month: 'Feb 23', value: sales1.Feb },
+                            { month: 'Mar 23', value: sales1.Mar },
+                            { month: 'Apr 23', value: sales1.Apr },
+                            { month: 'May 23', value: sales1.Mei },
+                            { month: 'Jun 23', value: sales1.Jun },
+                            { month: 'Jul 23', value: sales1.Jul },
+                            { month: 'Aug 23', value: sales1.Aug },
+                            { month: 'Sep 23', value: sales1.Sep },
+                            { month: 'Oct 23', value: sales1.Okt },
+                            { month: 'Nov 23', value: sales1.Nov },
+                            { month: 'Dec 23', value: sales1.Desember }
+                        ],
+                        rdf: [
+                            { month: 'Jan 23', value: RDF.Jan },
+                            { month: 'Feb 23', value: RDF.Feb },
+                            { month: 'Mar 23', value: RDF.Mar },
+                            { month: 'Apr 23', value: RDF.Apr },
+                            { month: 'May 23', value: RDF.Mei },
+                            { month: 'Jun 23', value: RDF.Jun },
+                            { month: 'Jul 23', value: RDF.Jul },
+                            { month: 'Aug 23', value: RDF.Aug },
+                            { month: 'Sep 23', value: RDF.Sep },
+                            { month: 'Oct 23', value: RDF.Okt },
+                            { month: 'Nov 23', value: RDF.Nov },
+                            { month: 'Dec 23', value: RDF.Desember }
+                        ],
+                        target2: [
+                            { month: 'Jan 23', value: target2.Jan },
+                            { month: 'Feb 23', value: target2.Feb },
+                            { month: 'Mar 23', value: target2.Mar },
+                            { month: 'Apr 23', value: target2.Apr },
+                            { month: 'May 23', value: target2.Mei },
+                            { month: 'Jun 23', value: target2.Jun },
+                            { month: 'Jul 23', value: target2.Jul },
+                            { month: 'Aug 23', value: target2.Aug },
+                            { month: 'Sep 23', value: target2.Sep },
+                            { month: 'Oct 23', value: target2.Okt },
+                            { month: 'Nov 23', value: target2.Nov },
+                            { month: 'Dec 23', value: target2.Desember }
+                        ],
+                        };
+                data = data1;
+                if(!check){
+                    data = data2
+                }
+                // Find the index where the sales value stops or goes to 0
+                var stopIndex = data.sales.findIndex(item => item.value === 0);
+                let targetIndex = stopIndex-2;
+                if(difType == 'bar'){
+                    targetIndex = stopIndex
+                    stopIndex+=1
+                }
+                //filter out the 0s in the arrays
+                const filteredRDF = data.rdf.filter(item=>item.value != 0)
+                const filteredTarget = data.target2.filter(item=>item.value !=0 )
+                const filteredSales = data.sales.filter(item=>item.value != 0)
+                // Create new arrays for the data with null values so they connect correctly from sales to RDF to target2
+                const RDFNew = new Array(stopIndex-1).fill(null).concat(filteredRDF.map(item => item.value));
+                const target2New = new Array(targetIndex+filteredRDF.length).fill(null).concat(filteredTarget.map(item => item.value));
+                // Create a new chart
+                const ctx = document.getElementById('myChart').getContext('2d');
+                //get rid of the loading screen
+                let color =  '#e53935'; //red for negative overall percentage
+                if(((data2.target2[11].value/data2.target[11].value)-1)*100>0){
+                    color = '#5cb85c';// green for positive overall percentage
+                }
+                //check if the label should be diplayed
+                var displayLabel = false;
+                if(!check){
+                    displayLabel =true;
+                }
+                loaderContainer.style.display = 'none';
+                //variable to make the bar chart solid and line chart not solid
+                opaque = .4
+                if(difType == 'bar'){
+                    opaque = 1
+                }
+                lineChart = new Chart(ctx, {
+                    type: difType,
+                    data: {
+                        labels: data.target.map(item => item.month),
+                        //Red: RGB(255, 99, 132)
+                        //Blue: RGB(54, 162, 235)
+                        //Green: RGB(75, 192, 192)
+                        //Yellow: RGB(255, 205, 86)
+                        //format the colors and data
+                        datasets: [
+                            {
+                                label: 'Target',
+                                data: data.target.map(item => item.value !== 0  ? item.value : null),
+                                borderColor: 'RGB(255, 99, 132)',
+                                backgroundColor: 'rgba(255, 99, 132, '+opaque+')',
+                                fill: false,
+                            },
+                            {
+                                label: 'Sales',
+                                data: filteredSales.map(item => item.value !== 0  ? item.value : null),
+                                borderColor: 'RGB(54, 162, 235)',
+                                backgroundColor: 'rgba(54, 162, 235, '+opaque+')',
+                                fill: false
+                            },
+                            {
+                                label: 'RDF',
+                                data: RDFNew.map(value => value !== 0  ? value : null),
+                                borderColor: 'RGB(75, 192, 192)',
+                                backgroundColor: 'rgba(75, 192, 192, '+opaque+')',
+                                fill: false
+                            },
+                            {
+                                label: 'Future Projections',
+                                data: target2New.map(value => value !== 0  ? value : null),
+                                borderColor: 'RGB(255, 205, 86)',
+                                backgroundColor: 'rgba(255, 205, 86, '+opaque+')',
+                                fill: false
+                            }
+                        ]
+                    },
+                    plugins:[ChartDataLabels],
+                    options: {
+                        layout:{
+                            padding:{
+                                right: 69
+                            },
+                        },
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            //x axis
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Months',
+                                    font : {
+                                        size : 14,
+                                        weight: 'lighter',
+                                    },
+                                    color: 'indigo'
+                                }
+                            },
+                            //y axis
+                            y: {
+                                display: true,
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function (value) {
+                                    return value.toLocaleString(); // Format y-axis labels with commas
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Volume(Lt)',
+                                    font : {
+                                        size : 14,
+                                        weight: 'lighter',
+                                    },
+                                    color: 'indigo'
+                                }
+                            }
+                        },
+                        
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    usePointStyle : true,
+                                    pointStyle: 'rectRounded'
+                                },
+                            },
+                            title: {
+                                display: true,
+                                text: 'Monthly Target vs Sales',
+                                font : {
+                                    size : 16,
+                                    weight: 'bold',
+                                },
+                                color: 'indigo'
+                            },
+                            
+                            datalabels:{
+                                display : displayLabel,
+                                color : 'white',
+                                anchor : 'center',
+                                align : 'right',
+                                offset: 5,
+                                borderWidth: 1,
+                                borderRadius: 5,
+                                display: function(context){
+                                    return (context.dataIndex === 11);
+                                },
+                                padding: 5,
+                                
+                                formatter: function(value, context){
+                                    const num = ((data2.target2[11].value/data2.target[11].value)-1)*100;
+                                    fixNum = num.toFixed(2);
+                                    if(context.datasetIndex === 3){
+                                        return fixNum + "%";
+                                    }
+                                    return null
+                                },
+                                backgroundColor: color, //'#5cb85c',
+                                borderColor: color,
+                            }
+                        }
+                    }
+                });
+                //console.log(lineChart.config._config.data.datasets)
+            })
+            .catch(error => console.log('error', error));
+        }
+        //function to change chart to different distrubutor
+        function changeChart(){
+            loaderContainer.style.display = 'flex';
+            //get id 
+            id = companyDropdown.value
+            //destroy current chart
+            lineChart.destroy()
+            button = document.getElementById('dataOrganize')
+            //varible to check if the chart should be distribution or accumulation
+            check = true;
+            //change chart back to distrubution if it is accumulation
+            if (!button.classList.contains('active')) {
+                check = false;
+            }
+            //check the type of graph and keep it the same
+            var chartTypeButton = document.getElementById('chartType');
+            type = 'line';
+            if (!chartTypeButton.classList.contains('active')) {
+                type = 'bar';
+            }
+            //create chart
+            updateChart(id, check, type)
+        }
+        //change data to accumulation or distribution
+        function switchData(){
+            //get current state
+            button = document.getElementById('dataOrganize')
+            check = false
+            //change check to true if we want a accumulation chart
+            if (button.classList.contains('active')) {
+                button.classList.remove('active');
+            } else {
+                button.classList.add('active');
+                check = true
+            }
+            //get current id
+            id = companyDropdown.value
+            //check the type of graph and keep it the same
+            var chartTypeButton = document.getElementById('chartType');
+            type = 'line';
+            if (!chartTypeButton.classList.contains('active')) {
+                type = 'bar';
+            }
+            //destroy chart
+            lineChart.destroy()
+            //make new chart
+            updateChart(id, check, type)
+        }
+        function switchChart(){
+            var chartTypeButton = document.getElementById('chartType');
+            button = document.getElementById('dataOrganize');
+            if (chartTypeButton.classList.contains('active')) {
+                chartTypeButton.classList.remove('active');
+            } else {
+                chartTypeButton.classList.add('active');
+            }
+            type = "bar"
+            // if current type is bar then change to line and vice versa
+            if(lineChart.config.type == 'bar'){
+                type = 'line'
+            }
+            id = companyDropdown.value;
+            //check the accumulation or distribution and keep it the same
+            check = true;
+            if(!button.classList.contains('active')){
+                check = false;
+            }
+            lineChart.destroy();
+            updateChart(id, check, type)
+        }
+</script>
+</body>
+</html>

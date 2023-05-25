@@ -264,6 +264,7 @@
             volOut[i] = entry.Vol_Out;
             i++
           }
+          console.log(bulan)
           //create a variable opaque so it is .2 for line chart and 1 for bar chart
           //it controls the see throughness of the graph
           opaque = .2;
@@ -370,7 +371,7 @@
       }
       //check the current units of the graph and keep them the same
       checkUnit = true
-      if(myChart.config.options.scales.y.title.text != 'Volume'){
+      if(myChart.config.options.scales.y.title.text != 'Volume(Lt)'){
         checkUnit = false
       }
       //destroy the current chart
