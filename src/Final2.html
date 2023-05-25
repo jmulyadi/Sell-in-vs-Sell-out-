@@ -422,14 +422,19 @@
                     data = data2
                 }
                 // Find the index where the sales value stops or goes to 0
-                const stopIndex = data.sales.findIndex(item => item.value === 0);
+                var stopIndex = data.sales.findIndex(item => item.value === 0);
+                let targetIndex = stopIndex-2;
+                if(difType == 'bar'){
+                    targetIndex = stopIndex
+                    stopIndex+=1
+                }
                 //filter out the 0s in the arrays
                 const filteredRDF = data.rdf.filter(item=>item.value != 0)
                 const filteredTarget = data.target2.filter(item=>item.value !=0 )
                 const filteredSales = data.sales.filter(item=>item.value != 0)
                 // Create new arrays for the data with null values so they connect correctly from sales to RDF to target2
                 const RDFNew = new Array(stopIndex-1).fill(null).concat(filteredRDF.map(item => item.value));
-                const target2New = new Array(stopIndex-2+filteredRDF.length).fill(null).concat(filteredTarget.map(item => item.value));
+                const target2New = new Array(targetIndex+filteredRDF.length).fill(null).concat(filteredTarget.map(item => item.value));
                 // Create a new chart
                 const ctx = document.getElementById('myChart').getContext('2d');
                 //get rid of the loading screen
@@ -460,28 +465,28 @@
                         datasets: [
                             {
                                 label: 'Target',
-                                data: data.target.map(item => item.value),
+                                data: data.target.map(item => item.value !== 0  ? item.value : null),
                                 borderColor: 'RGB(255, 99, 132)',
                                 backgroundColor: 'rgba(255, 99, 132, '+opaque+')',
-                                fill: false
+                                fill: false,
                             },
                             {
                                 label: 'Sales',
-                                data: filteredSales.map(item => item.value),
+                                data: filteredSales.map(item => item.value !== 0  ? item.value : null),
                                 borderColor: 'RGB(54, 162, 235)',
                                 backgroundColor: 'rgba(54, 162, 235, '+opaque+')',
                                 fill: false
                             },
                             {
                                 label: 'RDF',
-                                data: RDFNew,
+                                data: RDFNew.map(value => value !== 0  ? value : null),
                                 borderColor: 'RGB(75, 192, 192)',
                                 backgroundColor: 'rgba(75, 192, 192, '+opaque+')',
                                 fill: false
                             },
                             {
                                 label: 'Future Projections',
-                                data: target2New,
+                                data: target2New.map(value => value !== 0  ? value : null),
                                 borderColor: 'RGB(255, 205, 86)',
                                 backgroundColor: 'rgba(255, 205, 86, '+opaque+')',
                                 fill: false
@@ -531,6 +536,7 @@
                                 }
                             }
                         },
+                        
                         plugins: {
                             legend: {
                                 labels: {
@@ -575,6 +581,7 @@
                         }
                     }
                 });
+                //console.log(lineChart.config._config.data.datasets)
             })
             .catch(error => console.log('error', error));
         }
