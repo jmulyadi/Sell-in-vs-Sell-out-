@@ -107,6 +107,28 @@
             transform: translate(-50%, -50%);
             font-weight: bold;
         }
+        .type:before{
+            content: "Line Chart";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            left:0;
+            background-color: #ddd; /* Set the background color of the active state when the button is active */
+        }
+        .type:after{
+            content: "Bar Chart";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            left:0;
+            background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+        }
+        .type.active:before{
+            background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+        }
+        .type.active:after{
+            background-color: #ddd; /* Set the background color of the active state when the button is active */
+        }
     </style>
 </head>
 <!--Create all the containers, buttons, and chart with their ids-->
@@ -114,6 +136,7 @@
     <div class = "dropContainer">
         <select class ='btn btn-success' id = "companyDropdown" onchange = changeChart() ></select>
         <button type = 'button' id = "dataOrganize" class ='btn btn-toggle active ' onclick=switchData()></button>
+        <button type = 'button' id = "chartType" class ='btn btn-toggle type active ' onclick=switchChart()></button>
     </div>
     <div id="chartContainer">
         <canvas id="myChart"></canvas>
@@ -163,12 +186,12 @@
         //get current id
         id =  companyDropdown.value
         //create base chart
-        updateChart(id, true);
+        updateChart(id, true, 'line');
     })
     //throw error
     .catch(error => console.log('Error', error));
         //if check true then it's a distribution graph else it's accumulation
-        function updateChart(id, check){
+        function updateChart(id, check, difType){
             //fetch data with new id
             var myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
@@ -414,13 +437,19 @@
                 if(((data2.target2[11].value/data2.target[11].value)-1)*100>0){
                     color = '#5cb85c';// green for positive overall percentage
                 }
+                //check if the label should be diplayed
                 var displayLabel = false;
                 if(!check){
                     displayLabel =true;
                 }
                 loaderContainer.style.display = 'none';
+                //variable to make the bar chart solid and line chart not solid
+                opaque = .4
+                if(difType == 'bar'){
+                    opaque = 1
+                }
                 lineChart = new Chart(ctx, {
-                    type: 'line',
+                    type: difType,
                     data: {
                         labels: data.target.map(item => item.month),
                         //Red: RGB(255, 99, 132)
@@ -433,28 +462,28 @@
                                 label: 'Target',
                                 data: data.target.map(item => item.value),
                                 borderColor: 'RGB(255, 99, 132)',
-                                backgroundColor: 'rgba(255, 99, 132, .2)',
+                                backgroundColor: 'rgba(255, 99, 132, '+opaque+')',
                                 fill: false
                             },
                             {
                                 label: 'Sales',
                                 data: filteredSales.map(item => item.value),
                                 borderColor: 'RGB(54, 162, 235)',
-                                backgroundColor: 'rgba(54, 162, 235, .2)',
+                                backgroundColor: 'rgba(54, 162, 235, '+opaque+')',
                                 fill: false
                             },
                             {
                                 label: 'RDF',
                                 data: RDFNew,
                                 borderColor: 'RGB(75, 192, 192)',
-                                backgroundColor: 'rgba(75, 192, 192, .2)',
+                                backgroundColor: 'rgba(75, 192, 192, '+opaque+')',
                                 fill: false
                             },
                             {
                                 label: 'Future Projections',
                                 data: target2New,
                                 borderColor: 'RGB(255, 205, 86)',
-                                backgroundColor: 'rgba(255, 205, 86, .2)',
+                                backgroundColor: 'rgba(255, 205, 86, '+opaque+')',
                                 fill: false
                             }
                         ]
@@ -563,8 +592,14 @@
             if (!button.classList.contains('active')) {
                 check = false;
             }
+            //check the type of graph and keep it the same
+            var chartTypeButton = document.getElementById('chartType');
+            type = 'line';
+            if (!chartTypeButton.classList.contains('active')) {
+                type = 'bar';
+            }
             //create chart
-            updateChart(id, check)
+            updateChart(id, check, type)
         }
         //change data to accumulation or distribution
         function switchData(){
@@ -580,10 +615,38 @@
             }
             //get current id
             id = companyDropdown.value
+            //check the type of graph and keep it the same
+            var chartTypeButton = document.getElementById('chartType');
+            type = 'line';
+            if (!chartTypeButton.classList.contains('active')) {
+                type = 'bar';
+            }
             //destroy chart
             lineChart.destroy()
             //make new chart
-            updateChart(id, check)
+            updateChart(id, check, type)
+        }
+        function switchChart(){
+            var chartTypeButton = document.getElementById('chartType');
+            button = document.getElementById('dataOrganize');
+            if (chartTypeButton.classList.contains('active')) {
+                chartTypeButton.classList.remove('active');
+            } else {
+                chartTypeButton.classList.add('active');
+            }
+            type = "bar"
+            // if current type is bar then change to line and vice versa
+            if(lineChart.config.type == 'bar'){
+                type = 'line'
+            }
+            id = companyDropdown.value;
+            //check the accumulation or distribution and keep it the same
+            check = true;
+            if(!button.classList.contains('active')){
+                check = false;
+            }
+            lineChart.destroy();
+            updateChart(id, check, type)
         }
 </script>
 </body>
