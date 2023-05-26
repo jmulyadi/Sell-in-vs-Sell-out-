@@ -134,6 +134,7 @@
                 <span class="caret"></span></button>
                 <ul class="dropdown-menu">
                     <li id = generateGraphOption><a href = # onclick= "generateGraph()">Generate Graph</a></li>
+                    <li><a href = # onclick= "changeChart()">All Products</a></li>
                 </ul>
             </div>
             <select class ='btn btn-success' id = "companyDropdown" onchange = changeChart() ></select>
@@ -177,43 +178,18 @@
         </style>
   <script>
     const dropdownMenu = document.querySelector('.dropdown-menu');
-    dropdownMenu.addEventListener('click', function (event) {
-        event.stopPropagation();
-    });
      // Add event listener to the "Generate Graph" option
     const generateGraphOption = document.getElementById('generateGraphOption');
     generateGraphOption.addEventListener('click', generateGraph);
     function showOptions(){
-        console.log(dropdownMenu.style.display)
+        //console.log(dropdownMenu.style.display)
         if(dropdownMenu.style.display === null || dropdownMenu.style.display === 'none'){
             dropdownMenu.style.display = 'block';
         }else{
             dropdownMenu.style.display = null;
         }
     }
-    document.addEventListener('click', function(event){
-        const target = event.target;
-        const isDropdownButton = target.closest('.dropdown-toggle') !== null;
-        const isDropdownMenu = target.closest('.dropdown-menu') !== null;
-        // If the clicked element is not the dropdown button or the dropdown menu, hide the dropdown menu
-        if (!isDropdownButton && !isDropdownMenu) {
-            dropdownMenu.style.display = null;
-        }
-    })
-    // Add event listener to the "Select Options" button
-    const selectOptionsButton = document.querySelector('.dropdown-toggle');
-    // selectOptionsButton.addEventListener('click', function (event) {
-    //     if(dropdownMenu.style.display === 'none'){
-    //         dropdownMenu.style.display = 'block';
-    //     }else{
-    //         dropdownMenu.style.display = 'none';
-    //     }
-    // });
-    //when generate is clicked the new graph is made
-    function generateGraph() {
-        dropdownMenu.style.display = 'none';
-    }
-
+    
     //fetch data here
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
@@ -282,10 +258,10 @@
             const productNames = productTable.map(product => product.Prod); // Extract product names from the response
             const filteredProductNames = [...new Set(productNames)]; // Remove duplicates using a Set
             generateOptions(filteredProductNames)
+            updateChart('line',.4, true);
         })
-
         .catch(error => console.log('error', error));
-        updateChart('line',.4, true);
+        
       })
       //return error if data can't be fetched
     .catch(error => console.log('Error', error));
@@ -307,11 +283,26 @@
             checkbox.setAttribute('value', 'false');
             checkbox.setAttribute('onclick', 'event.stopPropagation()');
             label.appendChild(document.createTextNode(options[i]));
-
+            // Add event listener to each dropdown item
+            listItem.addEventListener('click', function (event) {
+                event.stopPropagation();
+                this.value = !this.value;
+            });
             dropdownMenu.appendChild(listItem);
         }
     }
-    
+    function generateGraph() {
+        dropdownMenu.style.display = 'none';
+        const dropdownItems = dropdownMenu.querySelectorAll('li');
+        dropdownItems.forEach(item => {
+            const productName = item.innerText;
+            const productVal = item.value
+            if(productVal === 1){
+                console.log(productVal, productName );
+            }
+            
+        });
+    }
     function updateChart(type, ten, volTrue) {
         // Get the selected company code from the dropdown
         var oldCode = companyDropdown.value
