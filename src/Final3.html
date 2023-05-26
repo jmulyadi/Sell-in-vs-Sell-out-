@@ -134,7 +134,8 @@
                 <span class="caret"></span></button>
                 <ul class="dropdown-menu">
                     <li id = generateGraphOption><a href = # onclick= "generateGraph()">Generate Graph</a></li>
-                    <li><a href = # onclick= "changeChart()">All Products</a></li>
+                    <li><a href = # onclick= "allProducts()">All Products</a></li>
+                    <li><a href = # onclick= "clearProducts()">Clear Products</a></li>
                 </ul>
             </div>
             <select class ='btn btn-success' id = "companyDropdown" onchange = changeChart() ></select>
@@ -178,9 +179,6 @@
         </style>
   <script>
     const dropdownMenu = document.querySelector('.dropdown-menu');
-     // Add event listener to the "Generate Graph" option
-    const generateGraphOption = document.getElementById('generateGraphOption');
-    generateGraphOption.addEventListener('click', generateGraph);
     function showOptions(){
         //console.log(dropdownMenu.style.display)
         if(dropdownMenu.style.display === null || dropdownMenu.style.display === 'none'){
@@ -189,7 +187,23 @@
             dropdownMenu.style.display = null;
         }
     }
-    
+    function allProducts(){
+        event.stopPropagation()
+        const checkboxes = dropdownMenu.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach((checkbox) => {
+            checkbox.checked = true;
+            checkbox.value = 1;
+        });
+    }
+    function clearProducts(){
+        event.stopPropagation()
+        const checkboxes = dropdownMenu.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach((checkbox) => {
+            checkbox.checked = false;
+            checkbox.value = 0;
+            
+        });
+    }
     //fetch data here
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
@@ -211,7 +225,8 @@
         body: raw,
         redirect: 'follow'
     };
-
+  let filterteredProductNames;
+  let productTable;
   fetch("https://safe.ultrajaya.co.id/safeapi/andro/ambil", requestOptions)
     .then(response => response.text())
     .then(result => {
@@ -254,9 +269,9 @@
         .then(response => response.text())
         .then(result => {
             const parse = JSON.parse(result);
-            const productTable = parse.data.nilai.Table;
+            productTable = parse.data.nilai.Table;
             const productNames = productTable.map(product => product.Prod); // Extract product names from the response
-            const filteredProductNames = [...new Set(productNames)]; // Remove duplicates using a Set
+            filteredProductNames = [...new Set(productNames)]; // Remove duplicates using a Set
             generateOptions(filteredProductNames)
             updateChart('line',.4, true);
         })
@@ -280,13 +295,26 @@
             listItem.setAttribute('id', 'option' + (i + 1));
             link.setAttribute('href', '#');
             checkbox.setAttribute('type', 'checkbox');
-            checkbox.setAttribute('value', 'false');
+            checkbox.setAttribute('value', 0);
             checkbox.setAttribute('onclick', 'event.stopPropagation()');
             label.appendChild(document.createTextNode(options[i]));
             // Add event listener to each dropdown item
             listItem.addEventListener('click', function (event) {
                 event.stopPropagation();
-                this.value = !this.value;
+                if(this.value == 0){
+                    this.value = 1;
+                }else{
+                    this.value = 0;
+                }
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                //console.log("before "+checkbox.value)
+                if(checkbox.value == 0){
+                    checkbox.value = 1;
+                }else{
+                    checkbox.value = 0;
+                }
+                //console.log("after "+checkbox.value)
+                
             });
             dropdownMenu.appendChild(listItem);
         }
@@ -294,16 +322,46 @@
     function generateGraph() {
         dropdownMenu.style.display = 'none';
         const dropdownItems = dropdownMenu.querySelectorAll('li');
+        var activeProducts = [];
         dropdownItems.forEach(item => {
-            const productName = item.innerText;
-            const productVal = item.value
-            if(productVal === 1){
-                console.log(productVal, productName );
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            if((checkbox && checkbox.value == 1) || item.value == 1){
+                const productName = item.innerText;
+                activeProducts.push(productName);
             }
-            
         });
+        const map = new Map();
+        currentMonth = productTable[0].Bulan_Name;
+        productTable.forEach(product=>{
+            if(!map.has(currentMonth)){
+                map.set(currentMonth,[0,0]);
+            }
+            if(product.Bulan_Name != currentMonth){
+                currentMonth = product.Bulan_Name;
+            }
+            if(activeProducts.includes(product.Prod)){
+                if(!map.has(currentMonth)){
+                    map.set(currentMonth,[0,0]);
+                }
+                currVol = map.get(currentMonth);
+                const newVol = [product.Vol_In + currVol[0], product.Vol_Out + currVol[1]]
+                map.set(currentMonth, newVol)
+            }
+        });
+        const inside = [];
+        const out = [];
+        i = 0;
+        map.forEach(entry => {
+            inside[i] = entry[0];
+            out[i] = entry[1];
+            i++
+        });
+        inputData = [inside, out];
+        console.log(inputData)
+        myChart.destroy();
+        updateChart('line', .4, true, inputData);
     }
-    function updateChart(type, ten, volTrue) {
+    function updateChart(type, ten, volTrue, productData) {
         // Get the selected company code from the dropdown
         var oldCode = companyDropdown.value
         //fetch data for the graph
@@ -343,8 +401,8 @@
           const tahun = []
           const bulan = []
           const bulanName = []
-          const volIn = []
-          const volOut = []
+          var volIn = []
+          var volOut = []
           //set i for indexing
           var i = 0
           //loop through table to put the values into the arrays
@@ -364,6 +422,10 @@
             opaque = 1;
           }
           //create data that will used to graph
+          if(productData != null){
+            volIn = productData[0]
+            volOut = productData[1]
+          }
           const data = {
             labels: bulanName,
             datasets: [{
