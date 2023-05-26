@@ -1,153 +1,220 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <!-- title -->
-    <title>Sales vs Target</title>
-    <!--formatting script for bootstrap and Chart.js-->
+<html lang ="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--Title of the Webpage-->
+    <title>Selling In vs Selling Out</title>
+    <!--formating for bootstrap and Chart.js-->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js" integrity="sha512-JPcRR8yFa8mmCsfrw4TNte1ZvF1e3+1SdGMslZvmrzDYxS69J7J49vkFL8u6u8PlPJK+H3voElBtUCzaXj+6ig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-    
-    <style>
-        /*add margins between everything*/
-        body {
-            margin-top: 20px; /* Add margin to move everything down */
-        }
-        /*size the chart and container*/
-        #myChart {
-            width: 100%; /* Set chart width to 100% */
-            height: 100%;
-            max-width: 900px;
-            max-height: 700px;
-            min-height: 500px;
-        }
-        #chartContainer {
-            width: 80%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto; /* Center horizontally */
-        }
-        .btn {
-            margin-right:10px; 
-            margin-left:10px; 
-            margin-bottom: 10px;
-        }
-        /*add a loading screen*/
-        .loader {
-            border: 16px solid #f3f3f3; /* Light grey */
-            border-top: 16px solid #3498db; /* Blue */
-            border-radius: 50%;
-            background-position: center center;
-            width: 120px;
-            height: 120px;
-            animation: spin 2s linear infinite;
-        }
-        /*formating the container for the drop down menu*/
-        .dropContainer{
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto; /* Center horizontally */
-        }
-        /*more specifications for the loader*/
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        /*format the button for accumulation vs distribution*/
-        .btn-toggle {
-            position: relative;
-            overflow: hidden;
-            padding: 0;
-            width: 150px; /* Adjust the width as needed */
-            height: 40px; /* Adjust the height as needed */
-            border-radius: 20px; /* Adjust the border radius as needed */
-            background-color: #888; /* Set the background color of the button */
-            color: #fff; /* Set the text color of the button */
-            cursor: pointer;
-        }
-        .btn-toggle:before{
-            content: "Distribution";
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            left:0;
-        }
-        .btn-toggle:after {
-            content: "Accumulation";
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            right:0;
-        }
-        /*makes the color change based on the active state*/
-        .btn-toggle:before {
-            left: 0;
-            background-color: #ddd; /* Set the background color of the inactive state */
-        }
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+  </head>
+  <!--Add margins so there space between everything-->
+  <style>
+    body {
+        margin-top: 20px; /* Add margin to move everything down */
+    }
+    #myChart {
+        max-width: 1000px;
+        max-height: 500px;
+    }
+  </style>
+<!--format the buttons-->
+<style>
+  .btn-toggle {
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+    width: 150px; /* Adjust the width as needed */
+    height: 40px; /* Adjust the height as needed */
+    border-radius: 20px; /* Adjust the border radius as needed */
+    background-color: #888; /* Set the background color of the button */
+    color: #fff; /* Set the text color of the button */
+    cursor: pointer;
+  }
+  /*Places Line Chart on top and Bar Chart Bottom*/
+  .btn-toggle:before{
+    content: "Line Chart";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left:0;
+  }
+  .btn-toggle:after {
+    content: "Bar Chart";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    right:0;
+  }
+  /*Changes colors based on which part is active*/
+  .btn-toggle:before {
+    left: 0;
+    background-color: #ddd; /* Set the background color of the inactive state */
+  }
+  
+  .btn-toggle:after {
+    right: 0;
+    background-color: #5cb85c; /* Set the background color of the active state */
+  }
+  
+  .btn-toggle.active:before {
+    background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+  }
+  
+  .btn-toggle.active:after {
+    background-color: #ddd; /* Set the background color of the inactive state when the button is not active */
+  }
+  
+  .btn-toggle span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+  }
+  /*formating for the line tension button*/
+  .tension-btn:before{
+    content: "Curved Line";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left:0;
+    background-color: #ddd; /* Set the background color of the active state when the button is active */
+  }
+  .tension-btn:after{
+    content: "Straight Line";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left:0;
+    background-color: #5cb85c
+  }
+  .tension-btn.active:before {
+    background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+  }
+  
+  .tension-btn.active:after {
+    background-color: #ddd; /* Set the background color of the inactive state when the button is active */
+  }
+  /*formatting for the change unit button*/
+  .unit:before{
+    content: "Volume";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left:0;
+    background-color: #ddd; /* Set the background color of the active state when the button is active */
+  }
+  .unit:after{
+    content: "Carton";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left:0;
+    background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+  }
+  .unit.active:before{
+    background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+  }
+  .unit.active:after{
+    background-color: #ddd; /* Set the background color of the active state when the button is active */
+  }
+</style>
+<!--This is where all the buttons and chart is made and given ids to use later-->
+<body class="dx-viewport dx-device-desktop dx-device-generic dx-theme-generic dx-theme-generic-typography dx-color-scheme-light" style>
+        <div class = "container">
+            <div class="dropdown" style="margin-right: 10px;">
+                <button class="btn btn-success dropdown-toggle" type="button" onclick = "showOptions()" data-toggle="dropdown">Select Products
+                <span class="caret"></span></button>
+                <ul class="dropdown-menu">
+                    <li id = generateGraphOption><a href = # onclick= "generateGraph()">Generate Graph</a></li>
+                </ul>
+            </div>
+            <select class ='btn btn-success' id = "companyDropdown" onchange = changeChart() ></select>
+            <div id = "typeContainer">
+              <button type = 'button' class ='btn btn-toggle active' id ="chartType" onclick=toggleChartType()></button>
+            </div>
+            <button type = 'button' id = "switchTension" class ='btn btn-toggle tension-btn active ' onclick=switchTension()></button>
+            <button type = 'button' id ="unitButton"class ='btn btn-toggle unit active ' onclick=changeUnits()></button>
+        </div>
         
-        .btn-toggle:after {
-            right: 0;
-            background-color: #5cb85c; /* Set the background color of the active state */
+        <div class = "chartContainer" style = 'order: -1;'>
+          <canvas id="myChart"></canvas>
+        </div>
+        <style>
+          /*more margins and formating for the chart and buttons*/
+            .btn {
+                margin-right:10px; 
+                margin-left:10px; 
+            }
+            .container {
+              margin-bottom: 20px; /* Add margin to create space below the container */
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              margin: 0 auto; /* Center horizontally */
+              flex-wrap: wrap; /* used to make the buttons wrap around if the page is too small */
+            }
+            .dropdown {
+                display: flex;
+                align-items: center;
+            }
+            .chartContainer{
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              margin: 0 auto; /* Center horizontally */
+            }
+            .container .btn{
+              margin-bottom:10px;
+            }
+        </style>
+  <script>
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+    dropdownMenu.addEventListener('click', function (event) {
+        event.stopPropagation();
+    });
+     // Add event listener to the "Generate Graph" option
+    const generateGraphOption = document.getElementById('generateGraphOption');
+    generateGraphOption.addEventListener('click', generateGraph);
+    function showOptions(){
+        console.log(dropdownMenu.style.display)
+        if(dropdownMenu.style.display === null || dropdownMenu.style.display === 'none'){
+            dropdownMenu.style.display = 'block';
+        }else{
+            dropdownMenu.style.display = null;
         }
-        
-        .btn-toggle.active:before {
-            background-color: #5cb85c; /* Set the background color of the active state when the button is active */
+    }
+    document.addEventListener('click', function(event){
+        const target = event.target;
+        const isDropdownButton = target.closest('.dropdown-toggle') !== null;
+        const isDropdownMenu = target.closest('.dropdown-menu') !== null;
+        // If the clicked element is not the dropdown button or the dropdown menu, hide the dropdown menu
+        if (!isDropdownButton && !isDropdownMenu) {
+            dropdownMenu.style.display = null;
         }
-        
-        .btn-toggle.active:after {
-            background-color: #ddd; /* Set the background color of the inactive state when the button is not active */
-        }
-        
-        .btn-toggle span {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-weight: bold;
-        }
-        .type:before{
-            content: "Line Chart";
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            left:0;
-            background-color: #ddd; /* Set the background color of the active state when the button is active */
-        }
-        .type:after{
-            content: "Bar Chart";
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            left:0;
-            background-color: #5cb85c; /* Set the background color of the active state when the button is active */
-        }
-        .type.active:before{
-            background-color: #5cb85c; /* Set the background color of the active state when the button is active */
-        }
-        .type.active:after{
-            background-color: #ddd; /* Set the background color of the active state when the button is active */
-        }
-    </style>
-</head>
-<!--Create all the containers, buttons, and chart with their ids-->
-<body class="dx-viewport dx-device-desktop dx-device-generic dx-theme-generic dx-theme-generic-typography dx-color-scheme-light">
-    <div class = "dropContainer">
-        <select class ='btn btn-success' id = "companyDropdown" onchange = changeChart() ></select>
-        <button type = 'button' id = "dataOrganize" class ='btn btn-toggle active ' onclick=switchData()></button>
-        <button type = 'button' id = "chartType" class ='btn btn-toggle type active ' onclick=switchChart()></button>
-    </div>
-    <div id="chartContainer">
-        <canvas id="myChart"></canvas>
-    </div>
-    <div id="loaderContainer" style="display: flex; justify-content: center; align-items: center; height: 0vh;">
-        <div id = "loader "class="loader"></div>
-    </div>
-    <script>
-    //create chart variable
-    let lineChart;
-    //fetch data from API
+    })
+    // Add event listener to the "Select Options" button
+    const selectOptionsButton = document.querySelector('.dropdown-toggle');
+    // selectOptionsButton.addEventListener('click', function (event) {
+    //     if(dropdownMenu.style.display === 'none'){
+    //         dropdownMenu.style.display = 'block';
+    //     }else{
+    //         dropdownMenu.style.display = 'none';
+    //     }
+    // });
+    //when generate is clicked the new graph is made
+    function generateGraph() {
+        dropdownMenu.style.display = 'none';
+    }
+
+    //fetch data here
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("Authorization", "Basic YmNhOmJjYXh5ejIwMTk=");
@@ -169,492 +236,336 @@
         redirect: 'follow'
     };
 
-    fetch("https://safe.ultrajaya.co.id/safeapi/andro/ambil", requestOptions)
+  fetch("https://safe.ultrajaya.co.id/safeapi/andro/ambil", requestOptions)
     .then(response => response.text())
     .then(result => {
-        //parse the result into a table
-        const o = JSON.parse(result)
-        const companyTable = o.data.nilai.Table
-        //make sure drop down is empty
-        companyDropdown.innerHTML = "";
-        companyTable.forEach(company => {
+      //result is in the form of a JSON String so it needs to be parsed to be readable 
+      const o = JSON.parse(result)
+      //turn into a table 
+      const companyTable = o.data.nilai.Table
+      //make sure the dropdown is empty
+      companyDropdown.innerHTML = "";
+      //populate the drop down with the company names and corresponding ids
+      companyTable.forEach(company => {
             const option = document.createElement("option");
             option.value = company.CompanyCode; // Use Company_Code instead of CompanyCode
             option.text = company.Desc_Company; // Use Company_Name instead of CompanyName
-            companyDropdown.add(option);// add option to dropdown  
+            companyDropdown.add(option);
         });
-        //get current id
-        id =  companyDropdown.value
-        //create base chart
-        updateChart(id, true, 'line');
-    })
-    //throw error
-    .catch(error => console.log('Error', error));
-        //if check true then it's a distribution graph else it's accumulation
-        function updateChart(id, check, difType){
-            //fetch data with new id
-            var myHeaders = new Headers();
-            myHeaders.append("Content-Type", "application/json");
-            myHeaders.append("Authorization", "Basic YmNhOmJjYQ==");
-            var raw = JSON.stringify({
-                "action": "1",
-                "key": id,
-                "mvitem": "10114þ050",
-                "othval": "SLS_TGT",
-                "serverdb": "1000",
-                "sid": "0",
-                "sp": "[SD].[BI_DistDashboard]"
-            });
+        //fetch data for product dropdown 
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Authorization", "Basic Og==");
 
-            var requestOptions = {
-                method: 'POST',
-                headers: myHeaders,
-                body: raw,
-                redirect: 'follow'
-            };
-            fetch("https://safe.ultrajaya.co.id/safeapi/andro/ambil", requestOptions)
-                .then(response => response.text())
-                .then(result => {
-                    //parse result and make a table
-                    const parse = JSON.parse(result)
-                    const table = parse.data.nilai.Table
-                    //make arrays to hold data for distribution data
-                    const target = table[0]
-                    const sales1 = table[1]
-                    const RDF = table[2]
-                    const target2 = table[3] 
-                    sum=0
-                    //create separate data to hold accumulation data
-                    const newTarget = []
-                    const newSales1 = []
-                    const newRDF = []
-                    const newTarget2 = []
-                    let data;
-                    //if check is false then accumulation data is wanted
-                    
-                        //index variable
-                        i=0
-                        for(const key in target){
-                            //skip type and id
-                            if(key == 'Tipe' || key == 'ID_Dist'){
-                                continue
-                            }
-                            //sum holds the previous amount 
-                            sum+= target[key]
-                            //fill the array with data
-                            newTarget[i] = sum
-                            i++;
-                        }
-                        
-                        i=0
-                        sum=0
-                        for(const key in sales1){
-                            if(key == 'Tipe' || key == 'ID_Dist'){
-                                continue
-                            }
-                            //if there is no data then keep it 0
-                            if(sales1[key] == 0){
-                                newSales1[i] = 0
-                            }else{
-                                sum+= sales1[key]
-                                newSales1[i] = sum
-                            }
-                            i++;
-                        }
-                        i = 0
-                        sum=0
-                        saleMax = Math.max(...newSales1)
-                        let saleToRDF;
-                        for(const key in RDF){
-                            if(key == 'Tipe' || key == 'ID_Dist'){
-                                continue
-                            }
-                            if(RDF[key] == 0){
-                                newRDF[i] = 0
-                            }else{
-                                //for RDF the graph has to be shifted up so that it is added the previous sales
-                                saleToRDF = saleMax - RDF[key]
-                                sum+= RDF[key]
-                                newRDF[i] = sum + saleToRDF
-                            }
-                            i++;
-                        }
-                        i = 0;
-                        sum=0
-                        RDFMax = Math.max(...newRDF)
-                        let RDFToFuture;
-                        for(const key in target2){
-                            if(key == 'Tipe' || key == 'ID_Dist'){
-                                continue
-                            }
-                            if(target2[key] == 0){
-                                newTarget2[i] = 0
-                            }else{             
-                                //Future prediction needs to be shifted up and added to previous RDF sales
-                                RDFToFuture = RDFMax - target2[key]        
-                                sum+= target2[key] 
-                                newTarget2[i] = sum + RDFToFuture
-                            }
-                            i++;
-                        }
-                        //create the data for target, sales, RDF, and target2 or future predictions
-                        data2 = {
-                            //data for accumulation graph
-                            target: [
-                            { month: 'Jan 23', value: newTarget[0] },
-                            { month: 'Feb 23', value: newTarget[1] },
-                            { month: 'Mar 23', value: newTarget[2] },
-                            { month: 'Apr 23', value: newTarget[3] },
-                            { month: 'May 23', value: newTarget[4] },
-                            { month: 'Jun 23', value: newTarget[5] },
-                            { month: 'Jul 23', value: newTarget[6] },
-                            { month: 'Aug 23', value: newTarget[7] },
-                            { month: 'Sep 23', value: newTarget[8] },
-                            { month: 'Oct 23', value: newTarget[9] },
-                            { month: 'Nov 23', value: newTarget[10] },
-                            { month: 'Dec 23', value: newTarget[11] }
-                        ],
-                        sales: [
-                            { month: 'Jan 23', value: newSales1[0] },
-                            { month: 'Feb 23', value: newSales1[1] },
-                            { month: 'Mar 23', value: newSales1[2] },
-                            { month: 'Apr 23', value: newSales1[3] },
-                            { month: 'May 23', value: newSales1[4] },
-                            { month: 'Jun 23', value: newSales1[5] },
-                            { month: 'Jul 23', value: newSales1[6] },
-                            { month: 'Aug 23', value: newSales1[7] },
-                            { month: 'Sep 23', value: newSales1[8] },
-                            { month: 'Oct 23', value: newSales1[9] },
-                            { month: 'Nov 23', value: newSales1[10] },
-                            { month: 'Dec 23', value: newSales1[11] }
-                        ],
-                        rdf: [
-                            { month: 'Jan 23', value: newRDF[0] },
-                            { month: 'Feb 23', value: newRDF[1] },
-                            { month: 'Mar 23', value: newRDF[2] },
-                            { month: 'Apr 23', value: newRDF[3] },
-                            { month: 'May 23', value: newRDF[4] },
-                            { month: 'Jun 23', value: newRDF[5] },
-                            { month: 'Jul 23', value: newRDF[6] },
-                            { month: 'Aug 23', value: newRDF[7] },
-                            { month: 'Sep 23', value: newRDF[8] },
-                            { month: 'Oct 23', value: newRDF[9] },
-                            { month: 'Nov 23', value: newRDF[10] },
-                            { month: 'Dec 23', value: newRDF[11] }
-                        ],
-                        target2: [
-                            { month: 'Jan 23', value: newTarget2[0] },
-                            { month: 'Feb 23', value: newTarget2[1] },
-                            { month: 'Mar 23', value: newTarget2[2] },
-                            { month: 'Apr 23', value: newTarget2[3] },
-                            { month: 'May 23', value: newTarget2[4] },
-                            { month: 'Jun 23', value: newTarget2[5] },
-                            { month: 'Jul 23', value: newTarget2[6] },
-                            { month: 'Aug 23', value: newTarget2[7] },
-                            { month: 'Sep 23', value: newTarget2[8] },
-                            { month: 'Oct 23', value: newTarget2[9] },
-                            { month: 'Nov 23', value: newTarget2[10] },
-                            { month: 'Dec 23', value: newTarget2[11] }
-                            ],
-                        }
-                    
-                        //data for distribution
-                        data1 = {
-                        target: [
-                            { month: 'Jan 23', value: target.Jan },
-                            { month: 'Feb 23', value: target.Feb },
-                            { month: 'Mar 23', value: target.Mar },
-                            { month: 'Apr 23', value: target.Apr },
-                            { month: 'May 23', value: target.Mei },
-                            { month: 'Jun 23', value: target.Jun },
-                            { month: 'Jul 23', value: target.Jul },
-                            { month: 'Aug 23', value: target.Aug },
-                            { month: 'Sep 23', value: target.Sep },
-                            { month: 'Oct 23', value: target.Okt },
-                            { month: 'Nov 23', value: target.Nov },
-                            { month: 'Dec 23', value: target.Desember }
-                        ],
-                        sales: [
-                            { month: 'Jan 23', value: sales1.Jan },
-                            { month: 'Feb 23', value: sales1.Feb },
-                            { month: 'Mar 23', value: sales1.Mar },
-                            { month: 'Apr 23', value: sales1.Apr },
-                            { month: 'May 23', value: sales1.Mei },
-                            { month: 'Jun 23', value: sales1.Jun },
-                            { month: 'Jul 23', value: sales1.Jul },
-                            { month: 'Aug 23', value: sales1.Aug },
-                            { month: 'Sep 23', value: sales1.Sep },
-                            { month: 'Oct 23', value: sales1.Okt },
-                            { month: 'Nov 23', value: sales1.Nov },
-                            { month: 'Dec 23', value: sales1.Desember }
-                        ],
-                        rdf: [
-                            { month: 'Jan 23', value: RDF.Jan },
-                            { month: 'Feb 23', value: RDF.Feb },
-                            { month: 'Mar 23', value: RDF.Mar },
-                            { month: 'Apr 23', value: RDF.Apr },
-                            { month: 'May 23', value: RDF.Mei },
-                            { month: 'Jun 23', value: RDF.Jun },
-                            { month: 'Jul 23', value: RDF.Jul },
-                            { month: 'Aug 23', value: RDF.Aug },
-                            { month: 'Sep 23', value: RDF.Sep },
-                            { month: 'Oct 23', value: RDF.Okt },
-                            { month: 'Nov 23', value: RDF.Nov },
-                            { month: 'Dec 23', value: RDF.Desember }
-                        ],
-                        target2: [
-                            { month: 'Jan 23', value: target2.Jan },
-                            { month: 'Feb 23', value: target2.Feb },
-                            { month: 'Mar 23', value: target2.Mar },
-                            { month: 'Apr 23', value: target2.Apr },
-                            { month: 'May 23', value: target2.Mei },
-                            { month: 'Jun 23', value: target2.Jun },
-                            { month: 'Jul 23', value: target2.Jul },
-                            { month: 'Aug 23', value: target2.Aug },
-                            { month: 'Sep 23', value: target2.Sep },
-                            { month: 'Oct 23', value: target2.Okt },
-                            { month: 'Nov 23', value: target2.Nov },
-                            { month: 'Dec 23', value: target2.Desember }
-                        ],
-                        };
-                data = data1;
-                if(!check){
-                    data = data2
-                }
-                // Find the index where the sales value stops or goes to 0
-                var stopIndex = data.sales.findIndex(item => item.value === 0);
-                let targetIndex = stopIndex-2;
-                if(difType == 'bar'){
-                    targetIndex = stopIndex
-                    stopIndex+=1
-                }
-                //filter out the 0s in the arrays
-                const filteredRDF = data.rdf.filter(item=>item.value != 0)
-                const filteredTarget = data.target2.filter(item=>item.value !=0 )
-                const filteredSales = data.sales.filter(item=>item.value != 0)
-                // Create new arrays for the data with null values so they connect correctly from sales to RDF to target2
-                const RDFNew = new Array(stopIndex-1).fill(null).concat(filteredRDF.map(item => item.value));
-                const target2New = new Array(targetIndex+filteredRDF.length).fill(null).concat(filteredTarget.map(item => item.value));
-                // Create a new chart
-                const ctx = document.getElementById('myChart').getContext('2d');
-                //get rid of the loading screen
-                let color =  '#e53935'; //red for negative overall percentage
-                if(((data2.target2[11].value/data2.target[11].value)-1)*100>0){
-                    color = '#5cb85c';// green for positive overall percentage
-                }
-                //check if the label should be diplayed
-                var displayLabel = false;
-                if(!check){
-                    displayLabel =true;
-                }
-                loaderContainer.style.display = 'none';
-                //variable to make the bar chart solid and line chart not solid
-                opaque = .4
-                if(difType == 'bar'){
-                    opaque = 1
-                }
-                lineChart = new Chart(ctx, {
-                    type: difType,
-                    data: {
-                        labels: data.target.map(item => item.month),
-                        //Red: RGB(255, 99, 132)
-                        //Blue: RGB(54, 162, 235)
-                        //Green: RGB(75, 192, 192)
-                        //Yellow: RGB(255, 205, 86)
-                        //format the colors and data
-                        datasets: [
-                            {
-                                label: 'Target',
-                                data: data.target.map(item => item.value !== 0  ? item.value : null),
-                                borderColor: 'RGB(255, 99, 132)',
-                                backgroundColor: 'rgba(255, 99, 132, '+opaque+')',
-                                fill: false,
-                            },
-                            {
-                                label: 'Sales',
-                                data: filteredSales.map(item => item.value !== 0  ? item.value : null),
-                                borderColor: 'RGB(54, 162, 235)',
-                                backgroundColor: 'rgba(54, 162, 235, '+opaque+')',
-                                fill: false
-                            },
-                            {
-                                label: 'RDF',
-                                data: RDFNew.map(value => value !== 0  ? value : null),
-                                borderColor: 'RGB(75, 192, 192)',
-                                backgroundColor: 'rgba(75, 192, 192, '+opaque+')',
-                                fill: false
-                            },
-                            {
-                                label: 'Future Projections',
-                                data: target2New.map(value => value !== 0  ? value : null),
-                                borderColor: 'RGB(255, 205, 86)',
-                                backgroundColor: 'rgba(255, 205, 86, '+opaque+')',
-                                fill: false
-                            }
-                        ]
+        var raw = JSON.stringify({
+            "action": "1",
+            "key": "8030",
+            "mvitem": "7þ",
+            "othval": "DASH_SALES_PROD",
+            "serverdb": "1000",
+            "sid": "",
+            "sp": "[SD].[BI_DistDashboard]"
+        });
+
+        var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
+        };
+
+        fetch("https://safe.ultrajaya.co.id/safeapi/andro/ambil", requestOptions)
+        .then(response => response.text())
+        .then(result => {
+            const parse = JSON.parse(result);
+            const productTable = parse.data.nilai.Table;
+            const productNames = productTable.map(product => product.Prod); // Extract product names from the response
+            const filteredProductNames = [...new Set(productNames)]; // Remove duplicates using a Set
+            generateOptions(filteredProductNames)
+        })
+
+        .catch(error => console.log('error', error));
+        updateChart('line',.4, true);
+      })
+      //return error if data can't be fetched
+    .catch(error => console.log('Error', error));
+    //create the chart
+    function generateOptions(options) {
+        for (var i = 0; i < options.length; i++) {
+            var listItem = document.createElement('li');
+            var link = document.createElement('a');
+            var label = document.createElement('label');
+            var checkbox = document.createElement('input');
+
+            listItem.appendChild(link);
+            link.appendChild(label);
+            label.appendChild(checkbox);
+
+            listItem.setAttribute('id', 'option' + (i + 1));
+            link.setAttribute('href', '#');
+            checkbox.setAttribute('type', 'checkbox');
+            checkbox.setAttribute('value', 'false');
+            checkbox.setAttribute('onclick', 'event.stopPropagation()');
+            label.appendChild(document.createTextNode(options[i]));
+
+            dropdownMenu.appendChild(listItem);
+        }
+    }
+    
+    function updateChart(type, ten, volTrue) {
+        // Get the selected company code from the dropdown
+        var oldCode = companyDropdown.value
+        //fetch data for the graph
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Authorization", "Basic YmNhOmJjYXh5ejIwMTk=");
+        yHolder = 'Volume(Lt)'
+        holder = "VOL"
+        //check volTrue variable to see if volume or cartons are wanted
+        if(!volTrue){
+          holder = "CAR"
+          yHolder = 'Carton'
+        }
+        //needed to fetch data check postman to get code
+        var raw = JSON.stringify({
+          "action": "1",
+          "key": oldCode,
+          "mvitem": "7þ",
+          "othval": holder,
+          "serverdb": "1000",
+          "sid": "",
+          "sp": "[SD].[BI_DistDashboard]"
+        });
+        var requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+        fetch("https://safe.ultrajaya.co.id/safeapi/andro/ambil", requestOptions)
+        .then(response => response.text())
+        .then(result => {
+          //parse result
+          const load = JSON.parse(result)
+          // create table and individual arrays for data
+          const table = load.data.nilai.Table
+          const tahun = []
+          const bulan = []
+          const bulanName = []
+          const volIn = []
+          const volOut = []
+          //set i for indexing
+          var i = 0
+          //loop through table to put the values into the arrays
+          for (const entry of table) {
+            tahun[i] = entry.Tahun;
+            bulan[i] = entry.Bulan;
+            bulanName[i] = entry.Bulan_Name;
+            //add an if statement to change vol to products 
+            volIn[i] = entry.Vol_In;
+            volOut[i] = entry.Vol_Out;
+            i++
+          }
+          //create a variable opaque so it is .2 for line chart and 1 for bar chart
+          //it controls the see throughness of the graph
+          opaque = .2;
+          if(type == 'bar'){
+            opaque = 1;
+          }
+          //create data that will used to graph
+          const data = {
+            labels: bulanName,
+            datasets: [{
+              //name
+              label: `Selling In: `,
+              //data from fetch
+              data: volOut,
+              //colors 
+              borderColor: 'rgb(75, 192, 192)',
+              backgroundColor: 'rgba(75, 192, 192,'+opaque+')', 
+              tension: ten, // inputed variable to controls how tight the line is meaning curved or straight
+            },
+            {
+              label: `Selling Out: `,
+              data: volIn,
+              borderColor: 'rgb(192, 75, 192)',
+              backgroundColor: 'rgba(192, 75, 192,'+opaque+')',
+              tension: ten,
+            }]
+          }
+        // Chart configuration
+        const config = {
+          type: type, //type is either line or bar 
+          data: data, // this is the data created right above this
+          options: {
+            scales: {
+              //x axis
+              x: {
+                  title: {
+                    display: true,
+                    text : "Month",
+                    font : {
+                        size : 14,
+                        weight: 'lighter',
                     },
-                    plugins:[ChartDataLabels],
-                    options: {
-                        layout:{
-                            padding:{
-                                right: 69
-                            },
-                        },
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            //x axis
-                            x: {
-                                display: true,
-                                title: {
-                                    display: true,
-                                    text: 'Months',
-                                    font : {
-                                        size : 14,
-                                        weight: 'lighter',
-                                    },
-                                    color: 'indigo'
-                                }
-                            },
-                            //y axis
-                            y: {
-                                display: true,
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function (value) {
-                                    return value.toLocaleString(); // Format y-axis labels with commas
-                                    }
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Volume(Lt)',
-                                    font : {
-                                        size : 14,
-                                        weight: 'lighter',
-                                    },
-                                    color: 'indigo'
-                                }
-                            }
-                        },
-                        
-                        plugins: {
-                            legend: {
-                                labels: {
-                                    usePointStyle : true,
-                                    pointStyle: 'rectRounded'
-                                },
-                            },
-                            title: {
-                                display: true,
-                                text: 'Monthly Target vs Sales',
-                                font : {
-                                    size : 16,
-                                    weight: 'bold',
-                                },
-                                color: 'indigo'
-                            },
-                            
-                            datalabels:{
-                                display : displayLabel,
-                                color : 'white',
-                                anchor : 'center',
-                                align : 'right',
-                                offset: 5,
-                                borderWidth: 1,
-                                borderRadius: 5,
-                                display: function(context){
-                                    return (context.dataIndex === 11);
-                                },
-                                padding: 5,
-                                
-                                formatter: function(value, context){
-                                    const num = ((data2.target2[11].value/data2.target[11].value)-1)*100;
-                                    fixNum = num.toFixed(2);
-                                    if(context.datasetIndex === 3){
-                                        return fixNum + "%";
-                                    }
-                                    return null
-                                },
-                                backgroundColor: color, //'#5cb85c',
-                                borderColor: color,
-                            }
-                        }
-                    }
-                });
-                //console.log(lineChart.config._config.data.datasets)
-            })
-            .catch(error => console.log('error', error));
+                    color: 'indigo'
+                  },
+              },
+              //y axis
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function (value) {
+                    return value.toLocaleString(); // Format y-axis labels with commas
+                  }
+                },
+                title: {
+                  display: true,
+                  text : yHolder,// yHolder is either Volume of Cartons based on what is active
+                  font : {
+                      size : 14,
+                      weight: 'lighter',
+                  },
+                  color: 'indigo'
+                }
+              }
+            },
+            plugins: {
+              title: {
+                display: true,
+                text: 'Selling In vs Selling Out',
+                font: {
+                  weight: 'bold',      // or '600'
+                  size: '16',          // or 16
+                },
+                color: 'indigo'      // or '#3B82F6'
+              },
+              legend: {
+                display: true,
+                position: 'top'
+              }
+            }
+          }
+        };
+        //create the chart
+        myChart = new Chart(document.getElementById('myChart'), config);
+      })
+      //throw error
+      .catch(error => console.log('error', error));  
+    }
+    //function change to correct distributer
+    function changeChart(){
+      //input variables
+      var inputType  = 'line';
+      var inputTension = .4;
+      //check the type of chart
+      var type = document.getElementById('chartType')
+      //check current tension of the line
+      var tension = document.getElementById('switchTension')
+      //makes the toggle button switch back to curved if it is on straight
+      if (!tension.classList.contains('active')) {
+        inputTension = 0;
+      }
+      //changes button to either line or bar based on what is active
+      if(!type.classList.contains('active')){
+        inputType = 'bar'
+      }
+      //check the current units of the graph and keep them the same
+      checkUnit = true
+      if(myChart.config.options.scales.y.title.text != 'Volume(Lt)'){
+        checkUnit = false
+      }
+      //destroy the current chart
+      myChart.destroy();
+      //make the new chart
+      updateChart(inputType,inputTension, checkUnit);
+    }
+    //
+    function toggleChartType(){
+      //input variable 
+      inputTension = .4;
+      //get the current chart type
+      var chartTypeButton = document.getElementById('chartType');
+      //change button to correct active state of bar or line chart
+      if (chartTypeButton.classList.contains('active')) {
+        chartTypeButton.classList.remove('active');
+      } else {
+        chartTypeButton.classList.add('active');
+      }
+      type = "bar"
+      // if current type is bar then change to line and vice versa
+      if(myChart.config.type == 'bar'){
+        type = 'line'
+        //check line tension
+        var tension = document.getElementById('switchTension')
+        //switch to correct active state of line tension
+        if (!tension.classList.contains('active')) {
+          inputTension = 0;
         }
-        //function to change chart to different distrubutor
-        function changeChart(){
-            loaderContainer.style.display = 'flex';
-            //get id 
-            id = companyDropdown.value
-            //destroy current chart
-            lineChart.destroy()
-            button = document.getElementById('dataOrganize')
-            //varible to check if the chart should be distribution or accumulation
-            check = true;
-            //change chart back to distrubution if it is accumulation
-            if (!button.classList.contains('active')) {
-                check = false;
-            }
-            //check the type of graph and keep it the same
-            var chartTypeButton = document.getElementById('chartType');
-            type = 'line';
-            if (!chartTypeButton.classList.contains('active')) {
-                type = 'bar';
-            }
-            //create chart
-            updateChart(id, check, type)
+      }
+      checkUnit = true
+      //check and change to the correct active state of the units
+      if(myChart.config.options.scales.y.title.text != 'Volume(Lt)'){
+        checkUnit = false
+      }
+      //destroy chart
+      myChart.destroy();
+      //make new chart
+      updateChart(type, inputTension, checkUnit);
+    }
+    
+    function switchTension(){
+      //if bar chart don't do anything
+      if(myChart.config.type != 'line'){
+        return
+      }
+      //switch the active state of the button to correct straight or curved line
+      var tension = document.getElementById('switchTension')
+      if (tension.classList.contains('active')) {
+        tension.classList.remove('active');
+      } else {
+        tension.classList.add('active');
+      }
+      //check the units and give display the correct state
+      checkUnit = true
+      if(myChart.config.options.scales.y.title.text != 'Volume(Lt)'){
+        checkUnit = false
+      }
+      //check the type of chart and give display the correct state
+      if(myChart.config.type == 'line'){
+        //destroy chart
+        myChart.destroy()
+        //change tension of chart accordingly
+        if(myChart.data.datasets[0].tension == .4){
+          updateChart('line',0, checkUnit);
+        }else{
+          updateChart('line',.4, checkUnit);
         }
-        //change data to accumulation or distribution
-        function switchData(){
-            //get current state
-            button = document.getElementById('dataOrganize')
-            check = false
-            //change check to true if we want a accumulation chart
-            if (button.classList.contains('active')) {
-                button.classList.remove('active');
-            } else {
-                button.classList.add('active');
-                check = true
-            }
-            //get current id
-            id = companyDropdown.value
-            //check the type of graph and keep it the same
-            var chartTypeButton = document.getElementById('chartType');
-            type = 'line';
-            if (!chartTypeButton.classList.contains('active')) {
-                type = 'bar';
-            }
-            //destroy chart
-            lineChart.destroy()
-            //make new chart
-            updateChart(id, check, type)
-        }
-        function switchChart(){
-            var chartTypeButton = document.getElementById('chartType');
-            button = document.getElementById('dataOrganize');
-            if (chartTypeButton.classList.contains('active')) {
-                chartTypeButton.classList.remove('active');
-            } else {
-                chartTypeButton.classList.add('active');
-            }
-            type = "bar"
-            // if current type is bar then change to line and vice versa
-            if(lineChart.config.type == 'bar'){
-                type = 'line'
-            }
-            id = companyDropdown.value;
-            //check the accumulation or distribution and keep it the same
-            check = true;
-            if(!button.classList.contains('active')){
-                check = false;
-            }
-            lineChart.destroy();
-            updateChart(id, check, type)
-        }
-</script>
+      }
+    }
+    //change the units on the graph
+    function changeUnits(){
+      //get curruent button
+      var unit = document.getElementById('unitButton')
+      //change the to the correct active state of either volume or cartons
+      if (unit.classList.contains('active')) {
+        unit.classList.remove('active');
+      } else {
+        unit.classList.add('active');
+      }
+      //make sure the tension and type of the graph is the same as previously
+      t = myChart.config.type
+      ten = myChart.data.datasets[0].tension
+      //use true for cartons and false for volume
+      if(myChart.config.options.scales.y.title.text == 'Volume(Lt)'){
+        myChart.destroy();
+        updateChart(t,ten, false);
+      }else{
+        myChart.destroy();
+        updateChart(t,ten, true);
+      }
+    }
+  </script>
+  
 </body>
 </html>
